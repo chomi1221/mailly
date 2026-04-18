@@ -70,6 +70,9 @@ export default function MailDetail({ mail, onClose, onAction, onBack }: Props) {
       return;
     }
 
+    // スマホ（< 640px）はパネルを開くまでAPI呼び出しを遅延
+    if (window.innerWidth < 640) return;
+
     // 1.5秒ディレイ：素早くスクロールして通過するだけのケースをスキップ
     const timer = setTimeout(() => {
       generateReply();
@@ -94,12 +97,19 @@ export default function MailDetail({ mail, onClose, onAction, onBack }: Props) {
 
     const collected: ReplyPattern[] = [];
 
+    const emailBody = mail.textPlain ?? mail.textHtml ?? "";
+    if (!emailBody.trim()) {
+      setError("This email has no readable content.");
+      setIsGenerating(false);
+      return;
+    }
+
     try {
       const res = await fetch("/api/ai/reply", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          emailBody: mail.textPlain ?? mail.textHtml ?? "",
+          emailBody,
           subject: mail.subject,
           attachments: mail.attachments ?? [],
         }),
@@ -434,7 +444,19 @@ export default function MailDetail({ mail, onClose, onAction, onBack }: Props) {
             <button
               className="md:hidden flex items-center justify-between w-full px-4 py-3 text-sm font-medium text-foreground min-h-[48px]"
               style={{ borderTop: "2px solid #534AB7" }}
-              onClick={() => setIsAiPanelOpen((prev) => !prev)}
+              onClick={() => {
+                const opening = !isAiPanelOpen;
+                setIsAiPanelOpen((prev) => !prev);
+                if (
+                  opening &&
+                  window.innerWidth < 640 &&
+                  patterns.length === 0 &&
+                  !isGenerating &&
+                  !replyCache.current[mail.id]
+                ) {
+                  generateReply();
+                }
+              }}
               aria-expanded={isAiPanelOpen}
             >
               <span className="flex items-center gap-2">

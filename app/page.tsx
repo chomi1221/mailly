@@ -18,6 +18,9 @@ export default async function Home() {
         priority
         style={{ position: "relative", left: "-5px" }}
       />
+      <p style={{ color: "#6B7280", fontSize: "15px", margin: "-8px 0 0" }}>
+        Smart replies, before you even think.
+      </p>
       <SignInButton />
       <a
         href="https://tally.so/r/Y5zQ95"
