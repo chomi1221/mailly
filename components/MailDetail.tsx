@@ -285,7 +285,7 @@ export default function MailDetail({ mail, onClose, onAction, onBack }: Props) {
   return (
     <>
       <style>{detailStyles}</style>
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
         {/* ヘッダー */}
         <div className="px-4 md:px-6 py-3 border-b border-border flex items-center gap-2 min-h-[56px]">
           {/* モバイル: 戻るボタン */}
@@ -344,10 +344,10 @@ export default function MailDetail({ mail, onClose, onAction, onBack }: Props) {
         </div>
 
         {/* コンテンツエリア: デスクトップは左右2カラム、タブレットは縦積み */}
-        <div className="flex-1 flex flex-col lg:flex-row overflow-hidden md:overflow-y-auto lg:overflow-hidden">
+        <div className="flex-1 min-h-0 flex flex-col lg:flex-row overflow-hidden md:overflow-y-auto lg:overflow-hidden">
 
           {/* メール本文（左カラム） */}
-          <div className="flex-1 min-h-0 overflow-y-auto px-4 md:px-6 py-4 flex flex-col md:flex-none md:overflow-visible lg:flex-1 lg:min-h-0 lg:overflow-y-auto">
+          <div className="flex-1 min-h-0 overflow-y-auto max-h-[calc(100dvh-200px)] md:max-h-none px-4 md:px-6 py-4 flex flex-col md:flex-none md:overflow-visible lg:flex-1 lg:min-h-0 lg:overflow-y-auto">
             {/* HTML/テキスト切り替えボタン（両方ある場合のみ表示） */}
             {mail.textHtml && mail.textPlain && (
               <div className="flex gap-1 mb-3 shrink-0">
