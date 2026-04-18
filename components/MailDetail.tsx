@@ -54,6 +54,7 @@ export default function MailDetail({ mail, onClose, onAction, onBack }: Props) {
   const [isAiPanelOpen, setIsAiPanelOpen] = useState(false); // モバイル用アコーディオン
   const [bodyViewMode, setBodyViewMode] = useState<"html" | "text">("html");
   const abortRef = useRef<AbortController | null>(null);
+  const replyCache = useRef<Record<string, ReplyPattern[]>>({});
 
   // メールが切り替わるたびに自動で返信を生成・モードをリセット
   useEffect(() => {
@@ -61,7 +62,20 @@ export default function MailDetail({ mail, onClose, onAction, onBack }: Props) {
     setReplyMode("reply");
     setIsAiPanelOpen(false);
     setBodyViewMode("html");
-    generateReply();
+
+    // キャッシュがあれば即座に反映してAPIを呼ばない
+    if (replyCache.current[mail.id]) {
+      setPatterns(replyCache.current[mail.id]);
+      setIsGenerating(false);
+      return;
+    }
+
+    // 1.5秒ディレイ：素早くスクロールして通過するだけのケースをスキップ
+    const timer = setTimeout(() => {
+      generateReply();
+    }, 1500);
+
+    return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mail?.id]);
 
@@ -77,6 +91,8 @@ export default function MailDetail({ mail, onClose, onAction, onBack }: Props) {
     setPatterns([]);
     setError(null);
     setIsGenerating(true);
+
+    const collected: ReplyPattern[] = [];
 
     try {
       const res = await fetch("/api/ai/reply", {
@@ -108,9 +124,16 @@ export default function MailDetail({ mail, onClose, onAction, onBack }: Props) {
           if (!line.trim()) continue;
           let obj: any;
           try { obj = JSON.parse(line); } catch { continue; }
-          if (obj.done) { setIsGenerating(false); return; }
+          if (obj.done) {
+            replyCache.current[mail.id] = collected;
+            setIsGenerating(false);
+            return;
+          }
           if (obj.error) throw new Error(obj.error);
-          if (obj.label && obj.body) setPatterns((prev) => [...prev, obj]);
+          if (obj.label && obj.body) {
+            collected.push(obj);
+            setPatterns([...collected]);
+          }
         }
       }
       setIsGenerating(false);
@@ -321,7 +344,7 @@ export default function MailDetail({ mail, onClose, onAction, onBack }: Props) {
         </div>
 
         {/* コンテンツエリア: デスクトップは左右2カラム、タブレットは縦積み */}
-        <div className="flex-1 flex flex-col lg:flex-row overflow-y-auto lg:overflow-hidden">
+        <div className="flex-1 flex flex-col lg:flex-row overflow-hidden md:overflow-y-auto lg:overflow-hidden">
 
           {/* メール本文（左カラム） */}
           <div className="flex-1 min-h-0 overflow-y-auto px-4 md:px-6 py-4 flex flex-col md:flex-none md:overflow-visible lg:flex-1 lg:min-h-0 lg:overflow-y-auto">
@@ -401,7 +424,7 @@ export default function MailDetail({ mail, onClose, onAction, onBack }: Props) {
 
           {/* AI 返信パネルエリア（右カラム） */}
           <div
-            className="lg:w-[340px] lg:shrink-0 flex flex-col md:overflow-visible lg:overflow-hidden md:flex-1 lg:flex-none"
+            className="flex flex-col overflow-hidden shrink-0 md:flex-1 md:overflow-visible lg:w-[340px] lg:shrink-0 lg:overflow-hidden lg:flex-none"
             style={{
               background: tokens.color.bgPage,
               borderLeft: `1px solid ${tokens.color.border}`,

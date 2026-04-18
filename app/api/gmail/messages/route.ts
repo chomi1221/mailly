@@ -3,7 +3,10 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { google } from "googleapis";
 
-export async function GET() {
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url);
+  const pageToken = searchParams.get("pageToken") ?? undefined;
+
   const session = await getServerSession(authOptions);
 
   if (!session?.accessToken) {
@@ -24,12 +27,13 @@ export async function GET() {
       userId: "me",
       maxResults: 20,
       labelIds: ["INBOX"],
+      pageToken,
     });
 
     const messages = listRes.data.messages ?? [];
 
     if (messages.length === 0) {
-      return NextResponse.json({ emails: [] });
+      return NextResponse.json({ emails: [], nextPageToken: null });
     }
 
     // 各メールのヘッダー情報を並列取得
@@ -59,7 +63,10 @@ export async function GET() {
       })
     );
 
-    return NextResponse.json({ emails });
+    return NextResponse.json({
+      emails,
+      nextPageToken: listRes.data.nextPageToken ?? null,
+    });
   } catch (error) {
     console.error("Gmail API error:", error);
     return NextResponse.json(

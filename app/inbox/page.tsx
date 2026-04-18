@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
@@ -59,6 +59,9 @@ export default function InboxPage() {
   const [hoveredMailId, setHoveredMailId] = useState<string | null>(null);
   // モバイル: list/detail の表示切り替え
   const [mobileView, setMobileView] = useState<"list" | "detail">("list");
+  const [nextPageToken, setNextPageToken] = useState<string | null>(null);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const sentinelRef = useRef<HTMLDivElement>(null);
 
   // 未認証ならログインページへ
   useEffect(() => {
@@ -85,6 +88,7 @@ export default function InboxPage() {
         const data = await res.json();
         const emails: MailSummary[] = data.emails ?? [];
         setMails(emails);
+        setNextPageToken(data.nextPageToken ?? null);
         // ローディング完了後、最新メールを自動で開く
         if (emails.length > 0) {
           handleSelectMail(emails[0].id, emails[0].isUnread);
@@ -104,7 +108,6 @@ export default function InboxPage() {
   const handleSelectMail = async (id: string, isUnreadOverride?: boolean) => {
     setLoadingDetail(true);
     setSelectedMail(null);
-    setMobileView("detail");
     try {
       const res = await fetch(`/api/gmail/message/${id}`);
       if (!res.ok) throw new Error("Failed to fetch email details");
@@ -137,6 +140,35 @@ export default function InboxPage() {
       setLoadingDetail(false);
     }
   };
+
+  const loadMoreMails = async () => {
+    if (!nextPageToken || loadingMore) return;
+    setLoadingMore(true);
+    try {
+      const res = await fetch(`/api/gmail/messages?pageToken=${nextPageToken}`);
+      if (!res.ok) throw new Error("Failed to fetch more emails");
+      const data = await res.json();
+      setMails((prev) => [...prev, ...(data.emails ?? [])]);
+      setNextPageToken(data.nextPageToken ?? null);
+    } catch (e: any) {
+      console.error("[inbox] loadMore:", e);
+      toast.error("Failed to load more emails");
+    } finally {
+      setLoadingMore(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!sentinelRef.current) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) loadMoreMails();
+      },
+      { threshold: 0.1 }
+    );
+    observer.observe(sentinelRef.current);
+    return () => observer.disconnect();
+  }, [nextPageToken, loadingMore]);
 
   // 一覧からのラベル操作
   const handleModify = async (mailId: string, action: MailAction) => {
@@ -322,12 +354,13 @@ export default function InboxPage() {
                   No emails
                 </div>
               ) : (
-                mails.map((mail) => {
+                <>
+                  {mails.map((mail) => {
                   const isSelected = selectedMail?.id === mail.id;
                   return (
                     <div
                       key={mail.id}
-                      onClick={() => handleSelectMail(mail.id)}
+                      onClick={() => { setMobileView("detail"); handleSelectMail(mail.id); }}
                       onMouseEnter={() => setHoveredMailId(mail.id)}
                       onMouseLeave={() => setHoveredMailId(null)}
                       className={`
@@ -421,7 +454,21 @@ export default function InboxPage() {
                       </div>
                     </div>
                   );
-                })
+                  })}
+                  {/* 無限スクロール用センチネル */}
+                  <div ref={sentinelRef} style={{ height: 1 }} />
+                  {loadingMore && (
+                    <div className="p-4 space-y-4">
+                      {[...Array(3)].map((_, i) => (
+                        <div key={i} className="space-y-1.5 animate-pulse">
+                          <div className="h-3.5 bg-muted rounded w-3/4" />
+                          <div className="h-2.5 bg-muted rounded w-1/2" />
+                          <div className="h-2.5 bg-muted rounded w-full" />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </aside>
