@@ -347,7 +347,7 @@ export default function MailDetail({ mail, onClose, onAction, onBack }: Props) {
         <div className="flex-1 min-h-0 flex flex-col lg:flex-row overflow-hidden md:overflow-y-auto lg:overflow-hidden">
 
           {/* メール本文（左カラム） */}
-          <div className="flex-1 min-h-0 overflow-y-auto max-h-[calc(100dvh-200px)] md:max-h-none px-4 md:px-6 py-4 flex flex-col md:flex-none md:overflow-visible lg:flex-1 lg:min-h-0 lg:overflow-y-auto">
+          <div className={`flex-1 min-h-0 overflow-y-auto px-4 md:px-6 pt-4 flex flex-col md:flex-none md:overflow-visible lg:flex-1 lg:min-h-0 lg:overflow-y-auto ${isAiPanelOpen ? "pb-96 md:pb-4" : "pb-12 md:pb-4"}`}>
             {/* HTML/テキスト切り替えボタン（両方ある場合のみ表示） */}
             {mail.textHtml && mail.textPlain && (
               <div className="flex gap-1 mb-3 shrink-0">
@@ -424,7 +424,7 @@ export default function MailDetail({ mail, onClose, onAction, onBack }: Props) {
 
           {/* AI 返信パネルエリア（右カラム） */}
           <div
-            className="flex flex-col overflow-hidden shrink-0 md:flex-1 md:overflow-visible lg:w-[340px] lg:shrink-0 lg:overflow-hidden lg:flex-none"
+            className="fixed bottom-0 left-0 right-0 z-50 flex flex-col overflow-hidden md:static md:z-auto md:flex-1 md:overflow-visible lg:w-[340px] lg:shrink-0 lg:overflow-hidden lg:flex-none"
             style={{
               background: tokens.color.bgPage,
               borderLeft: `1px solid ${tokens.color.border}`,
