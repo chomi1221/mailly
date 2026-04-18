@@ -57,9 +57,11 @@ export default function MailDetail({ mail, onClose, onAction, onBack }: Props) {
   const replyCache = useRef<Record<string, ReplyPattern[]>>({});
   const mailRef = useRef<typeof mail>(mail);
   useEffect(() => { mailRef.current = mail; });
+  const retryOnEmailBodyRef = useRef(false);
 
   // メールが切り替わるたびに自動で返信を生成・モードをリセット
   useEffect(() => {
+    retryOnEmailBodyRef.current = false; // メール切り替え時はリトライフラグをリセット
     if (!mail) return;
     setReplyMode("reply");
     setIsAiPanelOpen(false);
@@ -84,6 +86,22 @@ export default function MailDetail({ mail, onClose, onAction, onBack }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mail?.id]);
 
+  // emailBody の変化を監視してリトライ（1回のみ）
+  const emailBody = (mail?.textPlain ?? mail?.textHtml ?? "").trim();
+  useEffect(() => {
+    if (
+      retryOnEmailBodyRef.current &&
+      emailBody &&
+      !isGenerating &&
+      mail?.id &&
+      !replyCache.current[mail.id]
+    ) {
+      retryOnEmailBodyRef.current = false;
+      generateReply();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [emailBody]);
+
   if (!mail) {
     return null;
   }
@@ -94,7 +112,7 @@ export default function MailDetail({ mail, onClose, onAction, onBack }: Props) {
     if (!currentMail) return;
     const emailBody = (currentMail.textPlain ?? currentMail.textHtml ?? "").trim();
     if (!emailBody) {
-      console.warn("[generateReply] skipped: emailBody is empty");
+      retryOnEmailBodyRef.current = true; // 本文到着後にリトライ
       return;
     }
 
