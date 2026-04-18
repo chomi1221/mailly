@@ -55,6 +55,8 @@ export default function MailDetail({ mail, onClose, onAction, onBack }: Props) {
   const [bodyViewMode, setBodyViewMode] = useState<"html" | "text">("html");
   const abortRef = useRef<AbortController | null>(null);
   const replyCache = useRef<Record<string, ReplyPattern[]>>({});
+  const mailRef = useRef<typeof mail>(mail);
+  useEffect(() => { mailRef.current = mail; });
 
   // メールが切り替わるたびに自動で返信を生成・モードをリセット
   useEffect(() => {
@@ -87,6 +89,15 @@ export default function MailDetail({ mail, onClose, onAction, onBack }: Props) {
   }
 
   const generateReply = async () => {
+    // 最新の mail を ref 経由で参照（stale closure 対策）
+    const currentMail = mailRef.current;
+    if (!currentMail) return;
+    const emailBody = (currentMail.textPlain ?? currentMail.textHtml ?? "").trim();
+    if (!emailBody) {
+      console.warn("[generateReply] skipped: emailBody is empty");
+      return;
+    }
+
     abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
@@ -97,21 +108,14 @@ export default function MailDetail({ mail, onClose, onAction, onBack }: Props) {
 
     const collected: ReplyPattern[] = [];
 
-    const emailBody = mail.textPlain ?? mail.textHtml ?? "";
-    if (!emailBody.trim()) {
-      setError("This email has no readable content.");
-      setIsGenerating(false);
-      return;
-    }
-
     try {
       const res = await fetch("/api/ai/reply", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           emailBody,
-          subject: mail.subject,
-          attachments: mail.attachments ?? [],
+          subject: currentMail.subject,
+          attachments: currentMail.attachments ?? [],
         }),
         signal: controller.signal,
       });
@@ -135,7 +139,7 @@ export default function MailDetail({ mail, onClose, onAction, onBack }: Props) {
           let obj: any;
           try { obj = JSON.parse(line); } catch { continue; }
           if (obj.done) {
-            replyCache.current[mail.id] = collected;
+            replyCache.current[currentMail.id] = collected;
             setIsGenerating(false);
             return;
           }
