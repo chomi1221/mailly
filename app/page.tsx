@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import Image from "next/image";
 import SignInButton from "@/components/SignInButton";
+import { tokens } from "@/lib/tokens";
 
 export default async function Home() {
   const session = await getServerSession(authOptions);
@@ -22,6 +23,16 @@ export default async function Home() {
         Smart replies, before you even think.
       </p>
       <SignInButton />
+      <p style={{
+        fontSize: 12,
+        color: tokens.color.textTertiary,
+        textAlign: "center",
+        lineHeight: 1.6,
+        maxWidth: 280,
+      }}>
+        MaiLLY uses Claude AI to generate reply suggestions.
+        Your email content is not used for AI training.
+      </p>
       <a
         href="https://tally.so/r/Y5zQ95"
         target="_blank"

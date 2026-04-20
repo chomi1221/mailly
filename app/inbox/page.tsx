@@ -89,8 +89,8 @@ export default function InboxPage() {
         const emails: MailSummary[] = data.emails ?? [];
         setMails(emails);
         setNextPageToken(data.nextPageToken ?? null);
-        // ローディング完了後、最新メールを自動で開く
-        if (emails.length > 0) {
+        // ローディング完了後、デスクトップ/タブレットのみ最新メールを自動で開く
+        if (emails.length > 0 && window.innerWidth >= 640) {
           handleSelectMail(emails[0].id, emails[0].isUnread);
         }
       } catch (e: any) {

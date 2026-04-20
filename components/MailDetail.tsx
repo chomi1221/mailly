@@ -52,6 +52,7 @@ export default function MailDetail({ mail, onClose, onAction, onBack }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [replyMode, setReplyMode] = useState<"reply" | "replyAll" | "forward">("reply");
   const [isAiPanelOpen, setIsAiPanelOpen] = useState(false); // モバイル用アコーディオン
+  const [isGenerated, setIsGenerated] = useState(false);
   const [bodyViewMode, setBodyViewMode] = useState<"html" | "text">("html");
   const abortRef = useRef<AbortController | null>(null);
   const replyCache = useRef<Record<string, ReplyPattern[]>>({});
@@ -59,30 +60,22 @@ export default function MailDetail({ mail, onClose, onAction, onBack }: Props) {
   useEffect(() => { mailRef.current = mail; });
   const retryOnEmailBodyRef = useRef(false);
 
-  // メールが切り替わるたびに自動で返信を生成・モードをリセット
+  // メールが切り替わるたびにモードをリセット
   useEffect(() => {
     retryOnEmailBodyRef.current = false; // メール切り替え時はリトライフラグをリセット
     if (!mail) return;
     setReplyMode("reply");
     setIsAiPanelOpen(false);
     setBodyViewMode("html");
+    setIsGenerated(false);
 
     // キャッシュがあれば即座に反映してAPIを呼ばない
     if (replyCache.current[mail.id]) {
       setPatterns(replyCache.current[mail.id]);
       setIsGenerating(false);
+      setIsGenerated(true);
       return;
     }
-
-    // スマホ（< 640px）はパネルを開くまでAPI呼び出しを遅延
-    if (window.innerWidth < 640) return;
-
-    // 1.5秒ディレイ：素早くスクロールして通過するだけのケースをスキップ
-    const timer = setTimeout(() => {
-      generateReply();
-    }, 1500);
-
-    return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mail?.id]);
 
@@ -159,6 +152,7 @@ export default function MailDetail({ mail, onClose, onAction, onBack }: Props) {
           if (obj.done) {
             replyCache.current[currentMail.id] = collected;
             setIsGenerating(false);
+            setIsGenerated(true);
             return;
           }
           if (obj.error) throw new Error(obj.error);
@@ -469,31 +463,13 @@ export default function MailDetail({ mail, onClose, onAction, onBack }: Props) {
               onClick={() => {
                 const opening = !isAiPanelOpen;
                 setIsAiPanelOpen((prev) => !prev);
-                if (
-                  opening &&
-                  window.innerWidth < 640 &&
-                  patterns.length === 0 &&
-                  !isGenerating &&
-                  !replyCache.current[mail.id]
-                ) {
+                if (opening && !isGenerated && !isGenerating) {
                   generateReply();
                 }
               }}
               aria-expanded={isAiPanelOpen}
             >
               <span className="flex items-center gap-2">
-                <span
-                  style={{
-                    background: "#EEF2FF",
-                    color: "#3730A3",
-                    fontSize: 12,
-                    fontWeight: 500,
-                    padding: "2px 7px",
-                    borderRadius: 12,
-                  }}
-                >
-                  AI
-                </span>
                 Reply Panel
               </span>
               <svg
@@ -556,6 +532,8 @@ export default function MailDetail({ mail, onClose, onAction, onBack }: Props) {
                   onRegenerate={regeneratePattern}
                   mode={replyMode}
                   initialBody={replyMode === "forward" ? computeForwardBody() : undefined}
+                  onGenerate={() => generateReply()}
+                  isGenerated={isGenerated}
                 />
               )}
             </div>
