@@ -39,6 +39,24 @@ type Props = {
   onBack?: () => void; // モバイル: 一覧に戻る
 };
 
+const CSP_META = '<meta http-equiv="Content-Security-Policy" content="img-src https: data: blob: \'self\';">';
+
+function injectCspMeta(html: string): string {
+  if (/<head[\s>]/i.test(html)) {
+    return html.replace(/(<head[\s>][^>]*>)/i, `$1${CSP_META}`);
+  }
+  return CSP_META + html;
+}
+
+function stripHtmlTags(html: string): string {
+  return html
+    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
+    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 const detailStyles = keyframes + `
   .mailly-outline-btn:hover { background: ${tokens.color.bgHover} !important; }
   .mailly-danger-btn:hover { background: #FEF2F2 !important; }
@@ -80,7 +98,7 @@ export default function MailDetail({ mail, onClose, onAction, onBack }: Props) {
   }, [mail?.id]);
 
   // emailBody の変化を監視してリトライ（1回のみ）
-  const emailBody = (mail?.textPlain ?? mail?.textHtml ?? "").trim();
+  const emailBody = (mail?.textPlain || stripHtmlTags(mail?.textHtml || "")).trim();
   useEffect(() => {
     if (
       retryOnEmailBodyRef.current &&
@@ -103,9 +121,13 @@ export default function MailDetail({ mail, onClose, onAction, onBack }: Props) {
     // 最新の mail を ref 経由で参照（stale closure 対策）
     const currentMail = mailRef.current;
     if (!currentMail) return;
-    const emailBody = (currentMail.textPlain ?? currentMail.textHtml ?? "").trim();
+    const emailBody = (currentMail.textPlain || stripHtmlTags(currentMail.textHtml || "")).trim();
     if (!emailBody) {
-      retryOnEmailBodyRef.current = true; // 本文到着後にリトライ
+      if (currentMail.textHtml || currentMail.textPlain) {
+        setError("Could not generate a reply for this email. The message body may not be available.");
+      } else {
+        retryOnEmailBodyRef.current = true; // 本文到着後にリトライ
+      }
       return;
     }
 
@@ -184,7 +206,7 @@ export default function MailDetail({ mail, onClose, onAction, onBack }: Props) {
         headers: { "Content-Type": "application/json" },
         signal: controller.signal,
         body: JSON.stringify({
-          emailBody: mail.textPlain ?? mail.textHtml ?? "",
+          emailBody: mail.textPlain || stripHtmlTags(mail.textHtml || ""),
           subject: mail.subject,
           attachments: mail.attachments ?? [],
           regenerateLabel: label,
@@ -415,7 +437,7 @@ export default function MailDetail({ mail, onClose, onAction, onBack }: Props) {
             {/* 本文表示 */}
             {mail.textHtml && (bodyViewMode === "html" || !mail.textPlain) ? (
               <iframe
-                srcDoc={mail.textHtml}
+                srcDoc={injectCspMeta(mail.textHtml)}
                 sandbox="allow-popups"
                 referrerPolicy="no-referrer"
                 style={{
@@ -461,11 +483,7 @@ export default function MailDetail({ mail, onClose, onAction, onBack }: Props) {
               className="md:hidden flex items-center justify-between w-full px-4 py-3 text-sm font-medium text-foreground min-h-[48px]"
               style={{ borderTop: "2px solid #534AB7" }}
               onClick={() => {
-                const opening = !isAiPanelOpen;
                 setIsAiPanelOpen((prev) => !prev);
-                if (opening && !isGenerated && !isGenerating) {
-                  generateReply();
-                }
               }}
               aria-expanded={isAiPanelOpen}
             >
