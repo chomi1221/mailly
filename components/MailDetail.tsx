@@ -94,6 +94,11 @@ export default function MailDetail({ mail, onClose, onAction, onBack }: Props) {
       setIsGenerated(true);
       return;
     }
+
+    // PC/TB: メール選択と同時に生成開始
+    if (typeof window !== "undefined" && window.innerWidth >= 640) {
+      generateReply();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mail?.id]);
 
@@ -149,6 +154,8 @@ export default function MailDetail({ mail, onClose, onAction, onBack }: Props) {
           emailBody,
           subject: currentMail.subject,
           attachments: currentMail.attachments ?? [],
+          from: currentMail.from,
+          to: currentMail.to ?? "",
         }),
         signal: controller.signal,
       });
@@ -210,6 +217,8 @@ export default function MailDetail({ mail, onClose, onAction, onBack }: Props) {
           subject: mail.subject,
           attachments: mail.attachments ?? [],
           regenerateLabel: label,
+          from: mail.from,
+          to: mail.to ?? "",
         }),
       });
 
@@ -483,7 +492,12 @@ export default function MailDetail({ mail, onClose, onAction, onBack }: Props) {
               className="md:hidden flex items-center justify-between w-full px-4 py-3 text-sm font-medium text-foreground min-h-[48px]"
               style={{ borderTop: "2px solid #534AB7" }}
               onClick={() => {
-                setIsAiPanelOpen((prev) => !prev);
+                const opening = !isAiPanelOpen;
+                setIsAiPanelOpen(opening);
+                // SP: パネルを開いたタイミングで生成開始（未生成・未実行・キャッシュなしの場合のみ）
+                if (opening && !isGenerated && !isGenerating && !replyCache.current[mail.id]) {
+                  generateReply();
+                }
               }}
               aria-expanded={isAiPanelOpen}
             >
@@ -550,7 +564,6 @@ export default function MailDetail({ mail, onClose, onAction, onBack }: Props) {
                   onRegenerate={regeneratePattern}
                   mode={replyMode}
                   initialBody={replyMode === "forward" ? computeForwardBody() : undefined}
-                  onGenerate={() => generateReply()}
                   isGenerated={isGenerated}
                 />
               )}

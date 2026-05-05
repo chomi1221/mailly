@@ -61,6 +61,7 @@ export default function InboxPage() {
   const [mobileView, setMobileView] = useState<"list" | "detail">("list");
   const [nextPageToken, setNextPageToken] = useState<string | null>(null);
   const [loadingMore, setLoadingMore] = useState(false);
+  const loadingMoreRef = useRef(false);
   const sentinelRef = useRef<HTMLDivElement>(null);
 
   // 未認証ならログインページへ
@@ -84,6 +85,14 @@ export default function InboxPage() {
       setListError(null);
       try {
         const res = await fetch("/api/gmail/messages");
+        if (res.status === 401) {
+          const body = await res.json().catch(() => ({}));
+          toast.error(body.error === "ReauthRequired"
+            ? "Google re-authentication required. Signing you out…"
+            : "Session expired. Please sign in again.");
+          signOut({ callbackUrl: "/" });
+          return;
+        }
         if (!res.ok) throw new Error("Failed to fetch emails");
         const data = await res.json();
         const emails: MailSummary[] = data.emails ?? [];
@@ -142,10 +151,19 @@ export default function InboxPage() {
   };
 
   const loadMoreMails = async () => {
-    if (!nextPageToken || loadingMore) return;
+    if (!nextPageToken || loadingMoreRef.current) return;
+    loadingMoreRef.current = true;
     setLoadingMore(true);
     try {
       const res = await fetch(`/api/gmail/messages?pageToken=${nextPageToken}`);
+      if (res.status === 401) {
+        const body = await res.json().catch(() => ({}));
+        toast.error(body.error === "ReauthRequired"
+          ? "Google re-authentication required. Signing you out…"
+          : "Session expired. Please sign in again.");
+        signOut({ callbackUrl: "/" });
+        return;
+      }
       if (!res.ok) throw new Error("Failed to fetch more emails");
       const data = await res.json();
       setMails((prev) => [...prev, ...(data.emails ?? [])]);
@@ -154,6 +172,7 @@ export default function InboxPage() {
       console.error("[inbox] loadMore:", e);
       toast.error("Failed to load more emails");
     } finally {
+      loadingMoreRef.current = false;
       setLoadingMore(false);
     }
   };
@@ -168,7 +187,11 @@ export default function InboxPage() {
     );
     observer.observe(sentinelRef.current);
     return () => observer.disconnect();
-  }, [nextPageToken, loadingMore]);
+  // loadingMore は ref (loadingMoreRef) で管理するため deps 不要。
+  // loadingMore を入れると: false→true→false の度に Observer が再生成・即発火し、
+  // エラー時に無限リトライループが発生する。
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nextPageToken]);
 
   // 一覧からのラベル操作
   const handleModify = async (mailId: string, action: MailAction) => {

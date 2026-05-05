@@ -20,7 +20,6 @@ type Props = {
   onRegenerate: (index: number, label: string) => void;
   mode?: "reply" | "replyAll" | "forward";
   initialBody?: string;
-  onGenerate: () => void;
   isGenerated: boolean;
 };
 
@@ -42,12 +41,6 @@ const CheckIcon = () => (
     <path d="M2 8l4 4L14 4" />
   </svg>
 );
-const SparkleIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M8 1 L9.5 6.5 L15 8 L9.5 9.5 L8 15 L6.5 9.5 L1 8 L6.5 6.5 Z" />
-  </svg>
-);
-
 // セクション区切り線スタイル（内部仕切りは borderLight）
 const innerDivider = { borderBottom: `1px solid ${tokens.color.borderLight}` } as const;
 const innerDividerTop = { borderTop: `1px solid ${tokens.color.borderLight}` } as const;
@@ -62,7 +55,6 @@ export default function AIReplyPanel({
   onRegenerate,
   mode = "reply",
   initialBody,
-  onGenerate,
   isGenerated,
 }: Props) {
   const isForward = mode === "forward";
@@ -269,27 +261,6 @@ export default function AIReplyPanel({
           style={innerDividerTop}
         >
           <div className="ml-auto flex items-center gap-2">
-            {!isForward && !isGenerated && (
-              <button
-                onClick={onGenerate}
-                disabled={isLoading}
-                className="mailly-ghost-btn"
-                style={{
-                  ...buttonStyles.ghost,
-                  fontSize: 13,
-                  color: tokens.color.primary,
-                  borderColor: tokens.color.primary,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                  opacity: isLoading ? 0.5 : 1,
-                  cursor: isLoading ? "not-allowed" : "pointer",
-                }}
-              >
-                <SparkleIcon />
-                AI reply
-              </button>
-            )}
             {isGenerated && !isForward && (
               <button
                 onClick={() => {

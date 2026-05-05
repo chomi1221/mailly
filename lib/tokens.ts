@@ -4,23 +4,23 @@
 export const tokens = {
   // ── Colors ──────────────────────────────────────────
   color: {
-    primary:       "#4F46E5", // Indigo 600 — プライマリアクション・選択状態・アクセント
-    primaryLight:  "#EEF2FF", // Indigo 50  — 選択背景・送信済みボタン背景
-    primaryText:   "#3730A3", // Indigo 700 — 選択状態のテキスト
-    primaryHover:  "#4338CA", // Indigo 700 — プライマリボタンホバー
+    primary: "#4F46E5", // Indigo 600 — プライマリアクション・選択状態・アクセント
+    primaryLight: "#EEF2FF", // Indigo 50  — 選択背景・送信済みボタン背景
+    primaryText: "#3730A3", // Indigo 700 — 選択状態のテキスト
+    primaryHover: "#4338CA", // Indigo 700 — プライマリボタンホバー
 
-    bgPage:        "#F8F8F6", // ページ背景（わずかにウォームグレー）
-    bgCard:        "#FFFFFF", // カード・パネル背景
-    bgHover:       "#F5F5F3", // ホバー時の背景
+    bgPage: "#F8F8F6", // ページ背景（わずかにウォームグレー）
+    bgCard: "#FFFFFF", // カード・パネル背景
+    bgHover: "#F5F5F3", // ホバー時の背景
 
-    textPrimary:   "#1A1A1A", // 本文・見出し
+    textPrimary: "#1A1A1A", // 本文・見出し
     textSecondary: "#6B7280", // サブテキスト・メタ情報
-    textTertiary:  "#9CA3AF", // プレースホルダー・disabled
+    textTertiary: "#9CA3AF", // プレースホルダー・disabled
 
-    border:        "#E5E7EB", // 標準の罫線
-    borderLight:   "#F3F4F6", // 軽い区切り線
+    border: "#E5E7EB", // 標準の罫線
+    borderLight: "#F3F4F6", // 軽い区切り線
 
-    danger:        "#DC2626", // 削除・エラー
+    danger: "#DC2626", // 削除・エラー
   },
 
   // ── Typography ──────────────────────────────────────
@@ -30,29 +30,29 @@ export const tokens = {
     scale: {
       headingLg: { fontSize: 16, fontWeight: 600, lineHeight: 1.4 }, // パネル見出し
       headingMd: { fontSize: 15, fontWeight: 600, lineHeight: 1.4 }, // 件名
-      bodyMd:    { fontSize: 14, fontWeight: 400, lineHeight: 1.6 }, // 本文・エディタ
-      bodySm:    { fontSize: 13, fontWeight: 400, lineHeight: 1.5 }, // 送信者名・プレビュー
-      caption:   { fontSize: 12, fontWeight: 400, lineHeight: 1.4 }, // 日時・バッジ
+      bodyMd: { fontSize: 14, fontWeight: 400, lineHeight: 1.6 }, // 本文・エディタ
+      bodySm: { fontSize: 13, fontWeight: 400, lineHeight: 1.5 }, // 送信者名・プレビュー
+      caption: { fontSize: 12, fontWeight: 400, lineHeight: 1.4 }, // 日時・バッジ
     },
   },
 
   // ── Spacing (4px grid) ──────────────────────────────
   space: {
-    1:  4,
-    2:  8,
-    3:  12,
-    4:  16,
-    5:  20,
-    6:  24,
-    8:  32,
+    1: 4,
+    2: 8,
+    3: 12,
+    4: 16,
+    5: 20,
+    6: 24,
+    8: 32,
   },
 
   // ── Border Radius ───────────────────────────────────
   radius: {
-    badge:  4,  // AIバッジ・小さいタグ
+    badge: 4,  // AIバッジ・小さいタグ
     button: 8,  // 通常ボタン
-    panel:  12, // カード・パネル
-    pill:   20, // タブ（Pill形状）
+    panel: 12, // カード・パネル
+    pill: 20, // タブ（Pill形状）
   },
 
   // ── Shadows ─────────────────────────────────────────
@@ -62,8 +62,8 @@ export const tokens = {
 
   // ── Transitions ─────────────────────────────────────
   transition: {
-    micro:  "0.12s ease",  // ホバー系
-    fade:   "0.2s ease-out", // フェードイン
+    micro: "0.12s ease",  // ホバー系
+    fade: "0.2s ease-out", // フェードイン
     expand: "0.3s ease-out", // パネル展開
   },
 } as const;
