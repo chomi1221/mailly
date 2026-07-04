@@ -1,5 +1,12 @@
-// MaiLLY Design Tokens v1.0
+// MaiLLY Design Tokens v2.0
 // ビジュアルデザインの単一の真実。このファイルを変更すれば全体に反映される。
+// primitive 層（tokens）+ semantic 層（semantic）の2層構成。
+//
+// 設計原則:
+//   1. AIのアフォーダンスはニュートラルが既定値。
+//      ユーザーの意図が生まれた時のみ Indigo が点灯する。
+//   2. 最小フォントサイズ 12px。
+//   3. 孤立値を持たない。すべての値はこのファイルの定義に寄せる。
 
 export const tokens = {
   // ── Colors ──────────────────────────────────────────
@@ -21,18 +28,34 @@ export const tokens = {
     borderLight: "#F3F4F6", // 軽い区切り線
 
     danger: "#DC2626", // 削除・エラー
+
+    bgQuiet: "#FAFAFA", // AI操作ゾーンの背景。bgPageより静か
+    neutralDisabled: "#D1D5DB", // 意図未入力の生成ボタン・非選択Pillボーダー
+    dangerBg: "#FEF2F2", // 破壊的アクションのホバー背景
+    dangerBorder: "#FECACA", // 破壊的アクションのボーダー
+  },
+
+  // ── Border Width ────────────────────────────────────
+  // 0.5px hairline は使用禁止。罫線・区切りはすべて 1px。
+  borderWidth: {
+    default: 1,
+    emphasis: 1.5,
+    accent: 2,
   },
 
   // ── Typography ──────────────────────────────────────
   font: {
     sans: `-apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic Medium", sans-serif`,
     // 日英混在のためシステムフォントスタック。Inter/Roboto 単体は使わない。
+    // 最小フォントサイズ 12px。9〜11px は使用禁止（長時間PC作業での眼精疲労を防ぐ）。
     scale: {
       headingLg: { fontSize: 16, fontWeight: 600, lineHeight: 1.4 }, // パネル見出し
       headingMd: { fontSize: 15, fontWeight: 600, lineHeight: 1.4 }, // 件名
       bodyMd: { fontSize: 14, fontWeight: 400, lineHeight: 1.6 }, // 本文・エディタ
       bodySm: { fontSize: 13, fontWeight: 400, lineHeight: 1.5 }, // 送信者名・プレビュー
       caption: { fontSize: 12, fontWeight: 400, lineHeight: 1.4 }, // 日時・バッジ
+      labelCaps: { fontSize: 12, fontWeight: 600, lineHeight: 1.4, letterSpacing: "0.07em", textTransform: "uppercase" }, // セクションラベル（大文字）
+      citation: { fontSize: 12, fontWeight: 400, lineHeight: 1.4 }, // 出典・引用
     },
   },
 
@@ -50,6 +73,7 @@ export const tokens = {
   // ── Border Radius ───────────────────────────────────
   radius: {
     badge: 4,  // AIバッジ・小さいタグ
+    control: 6, // 小型ボタン・チップ・段落ブロック用。5px 等の孤立値は今後すべてこれに統合
     button: 8,  // 通常ボタン
     panel: 12, // カード・パネル
     pill: 20, // タブ（Pill形状）
@@ -65,6 +89,59 @@ export const tokens = {
     micro: "0.12s ease",  // ホバー系
     fade: "0.2s ease-out", // フェードイン
     expand: "0.3s ease-out", // パネル展開
+  },
+
+  // ── Layout ──────────────────────────────────────────
+  // IA確定値
+  layout: {
+    colLeft: 220,
+    colRight: 360,
+  },
+} as const;
+
+// ── Semantic layer ──────────────────────────────────────────
+// v2 の新コンポーネント（ブリーフィング / 返信タイプPill / 段落編集モード）が参照する。
+// primitive 層（tokens）の値に意味を与える。コンポーネントは可能な限りこちらを参照する。
+
+export const semantic = {
+  briefing: {
+    surface: tokens.color.bgCard,
+    label:        { ...tokens.font.scale.labelCaps, color: tokens.color.textTertiary },
+    text:         { ...tokens.font.scale.caption, lineHeight: 1.6, color: tokens.color.textPrimary },
+    sectionLabel: { ...tokens.font.scale.labelCaps, color: tokens.color.textTertiary },
+    taskItem:     { ...tokens.font.scale.caption, color: tokens.color.textPrimary },
+    taskSource:   { ...tokens.font.scale.citation, color: tokens.color.textTertiary },
+    checkbox:     { accentColor: tokens.color.primary },
+  },
+  pill: {
+    selected: {
+      background: tokens.color.primaryLight,
+      borderColor: tokens.color.primary,
+      color: tokens.color.primaryText,
+      borderWidth: tokens.borderWidth.emphasis,
+    },
+    unselected: {
+      background: "transparent",
+      borderColor: tokens.color.neutralDisabled,
+      color: tokens.color.textSecondary,
+      borderWidth: tokens.borderWidth.emphasis,
+    },
+  },
+  edit: {
+    paraHover: tokens.color.bgHover,
+    paraEditingBorder: { color: tokens.color.primary, width: tokens.borderWidth.emphasis },
+    aiZoneBg: tokens.color.bgQuiet,
+    generateIdle:  { background: tokens.color.neutralDisabled, color: "#FFFFFF" },
+    generateReady: { background: tokens.color.primary, color: "#FFFFFF" },
+  },
+  reply: {
+    topAccent: { color: tokens.color.primary, width: tokens.borderWidth.accent },
+    checklistNote: { ...tokens.font.scale.caption, color: tokens.color.textTertiary },
+  },
+  destructive: {
+    text: tokens.color.danger,
+    border: tokens.color.dangerBorder,
+    hoverBg: tokens.color.dangerBg,
   },
 } as const;
 
@@ -154,9 +231,9 @@ export const tabStyles = {
   },
   inactive: {
     background: "transparent",
-    border: "1.5px solid #D1D5DB",
+    border: `1.5px solid ${tokens.color.neutralDisabled}`,
     borderRadius: tokens.radius.pill,
-    color: "#374151",
+    color: tokens.color.textSecondary,
     fontSize: 12,
     fontWeight: 400,
     padding: "5px 13px",

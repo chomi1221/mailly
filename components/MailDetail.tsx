@@ -536,8 +536,8 @@ export default function MailDetail({ mail, onClose, onAction, onBack }: Props) {
                     className="px-3 py-2 min-h-[36px] rounded-lg border transition-colors text-sm"
                     style={{
                       background: replyMode === m ? tokens.color.primaryLight : tokens.color.bgCard,
-                      color: replyMode === m ? tokens.color.primaryText : "#374151",
-                      border: `1px solid ${replyMode === m ? tokens.color.primary : "#D1D5DB"}`,
+                      color: replyMode === m ? tokens.color.primaryText : tokens.color.textSecondary,
+                      border: `1px solid ${replyMode === m ? tokens.color.primary : tokens.color.neutralDisabled}`,
                       borderRadius: tokens.radius.button,
                       fontSize: 13,
                       fontWeight: replyMode === m ? 500 : 400,
