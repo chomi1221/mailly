@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MaiLLY v2 — Final Prototype</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --primary: #4F46E5; --primary-light: #EEF2FF; --primary-text: #3730A3;
+  --primary-hover: #4338CA; --bg-page: #F8F8F6; --bg-card: #FFFFFF;
+  --bg-hover: #F5F5F3; --text-primary: #1A1A1A; --text-secondary: #6B7280;
+  --text-tertiary: #9CA3AF; --border: #E5E7EB; --border-light: #F3F4F6;
+  --danger: #DC2626; --font: -apple-system, BlinkMacSystemFont, "Hiragino Sans", sans-serif;
+}
+body { font-family: var(--font); background: var(--bg-page); padding: 24px; }
+.label { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-tertiary); margin-bottom: 16px; }
+.app { display: grid; grid-template-columns: 220px 1fr 360px; height: 680px; border: 0.5px solid var(--border); border-radius: 12px; overflow: hidden; background: var(--bg-page); }
+
+.col-left { background: var(--bg-card); border-right: 0.5px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
+.col-left-header { padding: 12px 16px; border-bottom: 0.5px solid var(--border); font-size: 14px; font-weight: 600; color: var(--text-primary); }
+.mail-item { padding: 10px 16px; border-bottom: 0.5px solid var(--border-light); cursor: pointer; transition: background 0.12s ease; }
+.mail-item.active { background: var(--primary-light); }
+.mail-item:not(.active):hover { background: var(--bg-hover); }
+.mail-item-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 2px; }
+.mail-sender { font-size: 12px; font-weight: 600; color: var(--text-primary); display: flex; align-items: center; gap: 5px; }
+.unread-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--primary); flex-shrink: 0; }
+.mail-date { font-size: 11px; color: var(--text-tertiary); }
+.mail-subject { font-size: 12px; font-weight: 500; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 1px; }
+.mail-preview { font-size: 11px; color: var(--text-tertiary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.col-mid { background: var(--bg-card); border-right: 0.5px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
+.mail-header { padding: 12px 16px 10px; border-bottom: 0.5px solid var(--border); }
+.mail-header-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 6px; }
+.mail-subject-lg { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+.mail-actions { display: flex; gap: 5px; flex-shrink: 0; margin-left: 8px; }
+.action-btn { display: flex; align-items: center; gap: 3px; padding: 3px 7px; font-size: 11px; border: 0.5px solid var(--border); border-radius: 6px; background: var(--bg-card); color: var(--text-secondary); cursor: pointer; font-family: var(--font); transition: background 0.12s ease; }
+.action-btn:hover { background: var(--bg-hover); }
+.action-btn.danger { color: var(--danger); border-color: #FECACA; }
+.action-btn.danger:hover { background: #FEF2F2; }
+.mail-meta { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); }
+.avatar { width: 22px; height: 22px; border-radius: 50%; background: var(--primary-light); color: var(--primary-text); font-size: 9px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.view-toggle { display: flex; padding: 8px 16px; border-bottom: 0.5px solid var(--border); }
+.view-btn { padding: 3px 10px; font-size: 12px; font-family: var(--font); border: 0.5px solid var(--border); background: var(--bg-card); color: var(--text-secondary); cursor: pointer; }
+.view-btn:first-child { border-radius: 4px 0 0 4px; }
+.view-btn:last-child { border-radius: 0 4px 4px 0; border-left: none; }
+.view-btn.active { background: var(--bg-page); color: var(--text-primary); font-weight: 500; }
+.mail-body { padding: 16px; font-size: 13px; line-height: 1.7; color: var(--text-primary); overflow-y: auto; flex: 1; }
+.mail-body p { margin-bottom: 10px; }
+.attachment-row { padding: 8px 16px; border-top: 0.5px solid var(--border); display: flex; gap: 6px; min-height: 36px; }
+.attachment-chip { display: flex; align-items: center; gap: 5px; padding: 4px 8px; background: var(--bg-page); border: 0.5px solid var(--border); border-radius: 6px; font-size: 11px; color: var(--text-secondary); cursor: pointer; }
+
+.col-right { background: var(--bg-page); display: flex; flex-direction: column; overflow: hidden; }
+.briefing-panel { background: var(--bg-card); border-bottom: 0.5px solid var(--border); padding: 12px 14px; flex-shrink: 0; }
+.panel-label { font-size: 10px; font-weight: 600; letter-spacing: 0.07em; color: var(--text-tertiary); text-transform: uppercase; margin-bottom: 7px; }
+.briefing-text { font-size: 12px; line-height: 1.6; color: var(--text-primary); margin-bottom: 10px; }
+.task-list { display: flex; flex-direction: column; gap: 5px; }
+.task-item { display: flex; align-items: flex-start; gap: 7px; font-size: 12px; line-height: 1.5; color: var(--text-primary); }
+.task-item input[type=checkbox] { margin-top: 2px; flex-shrink: 0; accent-color: var(--primary); }
+.task-source { font-size: 10px; color: var(--text-tertiary); margin-left: 19px; margin-top: 1px; }
+.task-section-label { font-size: 10px; font-weight: 600; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 5px; margin-top: 8px; }
+
+.reply-panel { background: var(--bg-card); flex: 1; display: flex; flex-direction: column; overflow: hidden; border-top: 2px solid var(--primary); }
+.reply-mode-row { padding: 8px 14px; border-bottom: 0.5px solid var(--border); display: flex; gap: 6px; flex-shrink: 0; }
+.reply-btn { padding: 4px 10px; font-size: 11px; font-weight: 500; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-card); color: var(--text-secondary); cursor: pointer; font-family: var(--font); transition: all 0.12s ease; }
+.reply-btn.active { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
+.reply-type-row { display: flex; gap: 5px; padding: 8px 14px; border-bottom: 0.5px solid var(--border); flex-shrink: 0; }
+.type-btn { flex: 1; padding: 4px 0; font-size: 11px; font-weight: 500; border-radius: 20px; border: 1.5px solid var(--border); background: transparent; color: var(--text-secondary); cursor: pointer; text-align: center; transition: all 0.12s ease; font-family: var(--font); }
+.type-btn.active { background: var(--primary-light); border-color: var(--primary); color: var(--primary-text); }
+.pattern-tab-row { padding: 8px 14px; border-bottom: 0.5px solid var(--border); display: flex; gap: 6px; flex-shrink: 0; }
+.tab { padding: 3px 10px; font-size: 11px; font-weight: 500; border-radius: 20px; border: 1.5px solid #D1D5DB; background: transparent; color: #374151; cursor: pointer; font-family: var(--font); transition: all 0.12s ease; }
+.tab.active { background: var(--primary-light); border-color: var(--primary); color: var(--primary-text); }
+.to-field { display: flex; align-items: center; gap: 6px; padding: 6px 14px; border-bottom: 0.5px solid var(--border); font-size: 12px; flex-shrink: 0; }
+.to-label { color: var(--text-tertiary); font-size: 11px; flex-shrink: 0; }
+.to-value { color: var(--text-secondary); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.edit-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.toggle-btn { align-self: flex-end; margin: 6px 14px 0; padding: 3px 10px; font-size: 11px; font-weight: 500; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-card); color: var(--text-secondary); cursor: pointer; font-family: var(--font); flex-shrink: 0; }
+.toggle-btn:hover { background: var(--bg-hover); }
+
+.para-list { padding: 6px 14px; display: flex; flex-direction: column; gap: 2px; overflow-y: auto; flex: 1; }
+.para-block { border-radius: 6px; padding: 5px 7px; cursor: pointer; transition: background 0.12s ease; position: relative; }
+.para-block:hover:not(.editing) { background: var(--bg-hover); }
+.para-block:hover:not(.editing) .para-hint { opacity: 1; }
+.para-block.editing { cursor: default; }
+.para-text { font-size: 12px; line-height: 1.7; color: var(--text-primary); }
+.para-hint { position: absolute; top: 6px; right: 7px; font-size: 10px; color: var(--text-tertiary); opacity: 0; transition: opacity 0.12s ease; pointer-events: none; }
+.para-edit-box { border: 1.5px solid var(--primary); border-radius: 8px; overflow: hidden; background: var(--bg-card); }
+.para-textarea { width: 100%; padding: 6px 9px; font-size: 12px; line-height: 1.7; color: var(--text-primary); font-family: var(--font); border: none; outline: none; resize: none; background: transparent; display: block; }
+.para-ai-divider { height: 0.5px; background: var(--border); }
+.para-ai-row { display: flex; align-items: center; gap: 6px; padding: 5px 9px; background: #FAFAFA; }
+.para-ai-input { flex: 1; font-size: 11px; color: var(--text-primary); font-family: var(--font); border: none; outline: none; background: transparent; }
+.para-ai-input::placeholder { color: var(--text-tertiary); }
+.para-gen-btn { padding: 2px 8px; font-size: 11px; font-weight: 500; border-radius: 20px; border: none; background: #D1D5DB; color: #fff; cursor: pointer; font-family: var(--font); transition: background 0.12s ease; flex-shrink: 0; }
+.para-gen-btn.ready { background: var(--primary); }
+.para-actions { display: flex; justify-content: flex-end; gap: 6px; padding: 5px 9px; border-top: 0.5px solid var(--border); background: #FAFAFA; }
+.para-btn { padding: 2px 8px; font-size: 11px; font-weight: 500; border-radius: 5px; cursor: pointer; font-family: var(--font); }
+.para-btn.confirm { background: var(--primary); color: #fff; border: none; }
+.para-btn.cancel { background: transparent; color: var(--text-secondary); border: 0.5px solid var(--border); }
+
+.global-wrap { flex: 1; display: flex; flex-direction: column; overflow: hidden; padding: 6px 14px; gap: 6px; }
+.global-editor { flex: 1; font-size: 12px; line-height: 1.7; color: var(--text-primary); font-family: var(--font); border: none; outline: none; resize: none; background: transparent; }
+.global-ai-wrap { border-top: 0.5px solid var(--border); padding-top: 6px; flex-shrink: 0; }
+.global-ai-label { font-size: 10px; color: var(--text-tertiary); margin-bottom: 3px; }
+.global-ai-row { display: flex; align-items: flex-end; gap: 6px; }
+.global-ai-input { flex: 1; font-size: 12px; color: var(--text-primary); font-family: var(--font); border: none; outline: none; resize: none; background: transparent; min-height: 18px; max-height: 60px; }
+.global-ai-input::placeholder { color: var(--text-tertiary); }
+.global-gen-btn { padding: 3px 10px; font-size: 11px; font-weight: 500; border-radius: 20px; border: none; background: #D1D5DB; color: #fff; cursor: pointer; font-family: var(--font); transition: background 0.12s ease; flex-shrink: 0; }
+.global-gen-btn.ready { background: var(--primary); }
+
+.reply-footer { padding: 8px 14px; border-top: 0.5px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+.checklist-note { font-size: 11px; color: var(--text-tertiary); }
+.send-btn { background: var(--primary); color: #fff; border: none; border-radius: 8px; font-size: 12px; font-weight: 500; padding: 6px 14px; cursor: pointer; font-family: var(--font); }
+.send-btn:hover { background: var(--primary-hover); }
+</style>
+</head>
+<body>
+<div class="label">MaiLLY v2 — Final Prototype (Wireframe Confirmed)</div>
+<div class="app">
+
+  <div class="col-left">
+    <div class="col-left-header">Inbox</div>
+    <div class="mail-item active" data-mail="complex">
+      <div class="mail-item-top"><span class="mail-sender"><span class="unread-dot"></span>Kenji Tanaka</span><span class="mail-date">10:32</span></div>
+      <div class="mail-subject">Contract review and schedule confirmation</div>
+      <div class="mail-preview">Hi, this is Tanaka. I wanted to follow up…</div>
+    </div>
+    <div class="mail-item" data-mail="normal">
+      <div class="mail-item-top"><span class="mail-sender">Sarah Kim</span><span class="mail-date">9:14</span></div>
+      <div class="mail-subject">Q3 design review — feedback needed</div>
+      <div class="mail-preview">Hey, wanted to follow up on the…</div>
+    </div>
+    <div class="mail-item" data-mail="simple">
+      <div class="mail-item-top"><span class="mail-sender">HR Team</span><span class="mail-date">Yesterday</span></div>
+      <div class="mail-subject">[Office Notice] Office closure next week</div>
+      <div class="mail-preview">Please be advised that next Mon 5/25…</div>
+    </div>
+  </div>
+
+  <div class="col-mid">
+    <div class="mail-header">
+      <div class="mail-header-top">
+        <div class="mail-subject-lg" id="mid-subject">Contract review and schedule confirmation</div>
+        <div class="mail-actions">
+          <button class="action-btn">Unread</button>
+          <button class="action-btn">Archive</button>
+          <button class="action-btn danger">Delete</button>
+        </div>
+      </div>
+      <div class="mail-meta">
+        <div class="avatar" id="mid-avatar">KT</div>
+        <span id="mid-sender">Kenji Tanaka &lt;kenji@example.com&gt;</span>
+        <span style="color:var(--text-tertiary)" id="mid-date">· Today 10:32</span>
+      </div>
+    </div>
+    <div class="view-toggle">
+      <button class="view-btn active">HTML</button>
+      <button class="view-btn">Text</button>
+    </div>
+    <div class="mail-body" id="mid-body"></div>
+    <div class="attachment-row" id="mid-attachment"></div>
+  </div>
+
+  <div class="col-right">
+    <div class="briefing-panel">
+      <div class="panel-label">Briefing</div>
+      <div id="briefing-content"></div>
+    </div>
+    <div class="reply-panel">
+      <div class="reply-mode-row">
+        <button class="reply-btn active">Reply</button>
+        <button class="reply-btn">Reply All</button>
+        <button class="reply-btn">Forward</button>
+      </div>
+      <div class="reply-type-row">
+        <button class="type-btn active">Quick</button>
+        <button class="type-btn">Tentative</button>
+        <button class="type-btn">Considered</button>
+      </div>
+      <div class="pattern-tab-row" id="pattern-tabs"></div>
+      <div class="to-field">
+        <span class="to-label">To</span>
+        <span class="to-value" id="to-value">kenji@example.com</span>
+      </div>
+      <div class="edit-area">
+        <button class="toggle-btn" id="toggle-btn">Edit as whole</button>
+        <div id="mode-para" style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+          <div class="para-list" id="para-list"></div>
+        </div>
+        <div id="mode-global" style="display:none;flex:1;flex-direction:column;overflow:hidden;">
+          <div class="global-wrap">
+            <textarea class="global-editor" id="global-editor"></textarea>
+            <div class="global-ai-wrap">
+              <div class="global-ai-label">Ask AI to revise</div>
+              <div class="global-ai-row">
+                <textarea class="global-ai-input" id="global-ai-input" placeholder="e.g. Make the tone a bit more casual" rows="1"></textarea>
+                <button class="global-gen-btn" id="global-gen-btn">Generate</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="reply-footer">
+        <span class="checklist-note" id="check-status"></span>
+        <button class="send-btn">Send</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const mails = {
+  complex: {
+    subject: "Contract review and schedule confirmation",
+    avatar: "KT", sender: "Kenji Tanaka <kenji@example.com>", date: "Today 10:32",
+    to: "kenji@example.com",
+    body: `<p>Hi, this is Tanaka. I hope this message finds you well.</p><p>I wanted to follow up on the contract I sent over recently. There are a few items I'd like to confirm with you.</p><p>Could you please review the contract period, payment terms, and cancellation clause on page 3 of the attached contract, and let me know if everything looks good?</p><p>Also, for the kickoff meeting next week, please let me know which of the following times works best for you:<br>· Mon May 26, 2:00 PM<br>· Tue May 27, 10:00 AM<br>· Wed May 28, 3:00 PM</p><p>Thank you for your time and I look forward to hearing from you.</p>`,
+    attachment: `<div class="attachment-chip"><i class="ti ti-file" style="font-size:13px" aria-hidden="true"></i> contract_v3.pdf</div><div class="attachment-chip"><i class="ti ti-file" style="font-size:13px" aria-hidden="true"></i> NDA_2026.pdf</div>`,
+    briefingType: "complex",
+    tabs: ["Accept", "Pending", "Decline"],
+    drafts: {
+      "Accept": ["Dear Tanaka,", "Thank you for reaching out.", "I have reviewed the contract. The contract period, payment terms, and cancellation clause all look good to me.", "For the meeting, Tuesday May 27 at 10:00 AM works well for me.", "Best regards,"],
+      "Pending": ["Dear Tanaka,", "Thank you for reaching out.", "I am currently reviewing the contract and have a few points I need to clarify internally. I will get back to you by end of this week.", "I will also follow up on the meeting schedule once I have confirmed my availability.", "Best regards,"],
+      "Decline": ["Dear Tanaka,", "Thank you for sending over the contract.", "After careful consideration, I regret to inform you that we will not be able to proceed with this agreement at this time.", "I appreciate the time and effort you have put into this proposal.", "Best regards,"]
+    }
+  },
+  normal: {
+    subject: "Q3 design review — feedback needed",
+    avatar: "SK", sender: "Sarah Kim <sarah@company.com>", date: "Today 9:14",
+    to: "sarah@company.com",
+    body: `<p>Hey,</p><p>Wanted to follow up on the Q3 design review. I've attached the latest mockups for the dashboard redesign and would love your feedback before we move into development.</p><p>A few specific areas I'd love input on:<br>· The new navigation structure — does it feel intuitive?<br>· Color palette changes on the data visualization components<br>· Mobile responsiveness on the summary cards</p><p>If you could take a look by end of week, that would be super helpful. Happy to jump on a quick call if easier.</p><p>Thanks!<br>Sarah</p>`,
+    attachment: ``,
+    briefingType: "normal",
+    tabs: ["Respond", "Follow up later"],
+    drafts: {
+      "Respond": ["Sarah,", "Thanks for sharing the Q3 mockups!", "The new navigation structure feels intuitive overall. I especially like the consolidated menu approach. The color palette changes on the data viz components look great — much cleaner. I'll review the mobile responsiveness more closely and get back to you by Thursday.", "Happy to jump on a quick call Friday if helpful.", "Best,"],
+      "Follow up later": ["Sarah,", "Thanks for sending these over. I'll take a look at the mockups and get back to you with detailed feedback by end of week.", "Let me know if there's anything specific you'd like me to prioritize.", "Best,"]
+    }
+  },
+  simple: {
+    subject: "[Office Notice] Office closure next week",
+    avatar: "HR", sender: "HR Team <hr@company.com>", date: "Yesterday",
+    to: "hr@company.com",
+    body: `<p>Hi everyone,</p><p>Please be advised that the office will be closed all day on Monday, May 25th due to scheduled system maintenance.</p><p>All staff are asked to work remotely that day. For urgent matters, please contact the main office line.</p><p>We apologize for any inconvenience and appreciate your cooperation.</p><p>HR Team</p>`,
+    attachment: ``,
+    briefingType: "simple",
+    tabs: ["Acknowledged", "Have a question"],
+    drafts: {
+      "Acknowledged": ["HR Team,", "Understood. I will work remotely on May 25th.", "Thank you for the heads up.", "Best,"],
+      "Have a question": ["HR Team,", "Thank you for the notice. I have one quick question — if I need to access equipment that's in the office that day, would it be possible to stop by beforehand?", "Please let me know at your convenience.", "Best,"]
+    }
+  }
+};
+
+const briefings = {
+  complex: () => `
+    <div class="briefing-text">Tanaka is requesting final review of the contract documents. Multiple PDFs are attached, and each section needs to be reviewed and signed. Deadline is this Friday.</div>
+    <div class="task-section-label">Review</div>
+    <div class="task-list">
+      <div><div class="task-item"><input type="checkbox"><span>Contract period: Jun 1, 2026 – May 31, 2027</span></div><div class="task-source">Main contract, p.2</div></div>
+      <div><div class="task-item"><input type="checkbox"><span>Payment terms: end-of-month billing, next-month payment</span></div><div class="task-source">Main contract, p.3</div></div>
+      <div><div class="task-item"><input type="checkbox"><span>Cancellation clause: 6 months advance notice required</span></div><div class="task-source">Main contract, p.4</div></div>
+      <div><div class="task-item"><input type="checkbox"><span>NDA: valid for 3 years</span></div><div class="task-source">NDA attachment, p.1</div></div>
+    </div>
+    <div class="task-section-label">Action required</div>
+    <div class="task-list">
+      <div><div class="task-item"><input type="checkbox"><span>Send approval to legal team (deadline: Fri 5/23)</span></div></div>
+      <div><div class="task-item"><input type="checkbox"><span>Return with redlines if any revisions needed</span></div></div>
+      <div><div class="task-item"><input type="checkbox"><span>Sign and return signature page as PDF</span></div><div class="task-source">Attachment, signature page</div></div>
+    </div>`,
+  normal: () => `
+    <div class="briefing-text">Sarah is requesting feedback on the Q3 design review. She'd like your input on three specific areas of the dashboard mockups before development begins.</div>
+    <div class="task-list">
+      <div><div class="task-item"><input type="checkbox"><span>Review the new navigation structure</span></div></div>
+      <div><div class="task-item"><input type="checkbox"><span>Check color palette changes on data viz components</span></div></div>
+      <div><div class="task-item"><input type="checkbox"><span>Review mobile responsiveness on summary cards</span></div></div>
+      <div><div class="task-item"><input type="checkbox"><span>Send feedback by end of week</span></div></div>
+    </div>`,
+  simple: () => `
+    <div class="briefing-text">This is an internal notice from HR. The office will be closed all day on Monday, May 25th. Remote work is required that day. No action needed — just a heads up.</div>`
+};
+
+let currentMail = "complex";
+let editingIndex = null;
+let isGlobal = false;
+let currentTab = null;
+const paragraphState = {};
+
+function getParagraphs() {
+  const key = currentMail + "_" + (currentTab || mails[currentMail].tabs[0]);
+  if (!paragraphState[key]) {
+    const mail = mails[currentMail];
+    const tab = currentTab || mail.tabs[0];
+    paragraphState[key] = [...(mail.drafts[tab] || mail.drafts[mail.tabs[0]])];
+  }
+  return paragraphState[key];
+}
+
+function updateCheckStatus() {
+  const cbs = document.querySelectorAll('#briefing-content input[type=checkbox]');
+  const total = cbs.length;
+  const checked = document.querySelectorAll('#briefing-content input[type=checkbox]:checked').length;
+  const st = document.getElementById('check-status');
+  st.textContent = total > 0 ? checked + ' of ' + total + ' items checked' : '';
+}
+
+function renderBriefing() {
+  document.getElementById('briefing-content').innerHTML = briefings[mails[currentMail].briefingType]();
+  document.querySelectorAll('#briefing-content input[type=checkbox]').forEach(cb => cb.addEventListener('change', updateCheckStatus));
+  updateCheckStatus();
+}
+
+function renderTabs() {
+  const mail = mails[currentMail];
+  const row = document.getElementById('pattern-tabs');
+  row.innerHTML = '';
+  currentTab = mail.tabs[0];
+  mail.tabs.forEach((label, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'tab' + (i === 0 ? ' active' : '');
+    btn.textContent = label;
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#pattern-tabs .tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentTab = label;
+      editingIndex = null;
+      renderEditor();
+    });
+    row.appendChild(btn);
+  });
+}
+
+function renderEditor() {
+  if (isGlobal) {
+    document.getElementById('global-editor').value = getParagraphs().join('\n\n');
+  } else {
+    renderPara();
+  }
+}
+
+function renderPara() {
+  const list = document.getElementById('para-list');
+  list.innerHTML = '';
+  getParagraphs().forEach((text, i) => {
+    const block = document.createElement('div');
+    block.className = 'para-block' + (editingIndex === i ? ' editing' : '');
+    if (editingIndex === i) {
+      block.innerHTML = `<div class="para-edit-box"><textarea class="para-textarea" id="pta-${i}">${text}</textarea><div class="para-ai-divider"></div><div class="para-ai-row"><input class="para-ai-input" id="pai-${i}" placeholder="Ask AI to revise this paragraph"/><button class="para-gen-btn" id="pgb-${i}">Generate</button></div><div class="para-actions"><button class="para-btn cancel">Cancel</button><button class="para-btn confirm">Done</button></div></div>`;
+      block.querySelector('.para-btn.confirm').addEventListener('click', e => {
+        e.stopPropagation();
+        getParagraphs()[i] = block.querySelector('textarea').value;
+        editingIndex = null; renderPara();
+      });
+      block.querySelector('.para-btn.cancel').addEventListener('click', e => { e.stopPropagation(); editingIndex = null; renderPara(); });
+      const pai = block.querySelector(`#pai-${i}`), pgb = block.querySelector(`#pgb-${i}`);
+      pai.addEventListener('input', () => pgb.classList.toggle('ready', pai.value.trim().length > 0));
+      pgb.addEventListener('click', e => {
+        e.stopPropagation(); if (!pai.value.trim()) return;
+        pgb.textContent = 'Generating...';
+        setTimeout(() => { pgb.textContent = 'Generate'; pgb.classList.remove('ready'); pai.value = ''; }, 900);
+      });
+      setTimeout(() => {
+        const ta = document.getElementById(`pta-${i}`);
+        if (ta) { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; ta.focus(); ta.addEventListener('input', () => { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; }); }
+      }, 0);
+    } else {
+      block.innerHTML = `<div class="para-text">${text}</div><span class="para-hint">Click to edit</span>`;
+      block.addEventListener('click', () => { editingIndex = i; renderPara(); });
+    }
+    list.appendChild(block);
+  });
+}
+
+function loadMail(key) {
+  currentMail = key;
+  editingIndex = null;
+  isGlobal = false;
+  document.getElementById('toggle-btn').textContent = 'Edit as whole';
+  document.getElementById('mode-para').style.display = 'flex';
+  document.getElementById('mode-global').style.display = 'none';
+  const mail = mails[key];
+  document.getElementById('mid-subject').textContent = mail.subject;
+  document.getElementById('mid-avatar').textContent = mail.avatar;
+  document.getElementById('mid-sender').textContent = mail.sender;
+  document.getElementById('mid-date').textContent = '· ' + mail.date;
+  document.getElementById('mid-body').innerHTML = mail.body;
+  document.getElementById('mid-attachment').innerHTML = mail.attachment;
+  document.getElementById('to-value').textContent = mail.to;
+  document.querySelectorAll('.mail-item').forEach(el => el.classList.toggle('active', el.dataset.mail === key));
+  document.querySelectorAll('.reply-btn').forEach((b, i) => b.classList.toggle('active', i === 0));
+  document.querySelectorAll('.type-btn').forEach((b, i) => b.classList.toggle('active', i === 0));
+  renderBriefing();
+  renderTabs();
+  renderEditor();
+}
+
+document.querySelectorAll('.mail-item').forEach(item => item.addEventListener('click', () => loadMail(item.dataset.mail)));
+document.querySelectorAll('.reply-btn').forEach(btn => btn.addEventListener('click', e => { document.querySelectorAll('.reply-btn').forEach(b => b.classList.remove('active')); e.currentTarget.classList.add('active'); }));
+document.querySelectorAll('.type-btn').forEach(btn => btn.addEventListener('click', e => { document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active')); e.currentTarget.classList.add('active'); }));
+document.querySelectorAll('.view-btn').forEach(btn => btn.addEventListener('click', e => { document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active')); e.currentTarget.classList.add('active'); }));
+
+const toggleBtn = document.getElementById('toggle-btn');
+toggleBtn.addEventListener('click', () => {
+  isGlobal = !isGlobal;
+  if (isGlobal) {
+    toggleBtn.textContent = 'Edit by paragraph';
+    document.getElementById('mode-para').style.display = 'none';
+    document.getElementById('mode-global').style.display = 'flex';
+    document.getElementById('global-editor').value = getParagraphs().join('\n\n');
+  } else {
+    toggleBtn.textContent = 'Edit as whole';
+    document.getElementById('mode-global').style.display = 'none';
+    document.getElementById('mode-para').style.display = 'flex';
+    editingIndex = null; renderPara();
+  }
+});
+
+const gai = document.getElementById('global-ai-input'), ggb = document.getElementById('global-gen-btn');
+gai.addEventListener('input', () => ggb.classList.toggle('ready', gai.value.trim().length > 0));
+ggb.addEventListener('click', () => {
+  if (!gai.value.trim()) return;
+  ggb.textContent = 'Generating...';
+  setTimeout(() => { ggb.textContent = 'Generate'; ggb.classList.remove('ready'); gai.value = ''; }, 900);
+});
+
+loadMail('complex');
+</script>
+</body>
+</html>

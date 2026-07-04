@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MaiLLY v2 — B: ブリーフィング3パターン</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --primary: #4F46E5; --primary-light: #EEF2FF; --primary-text: #3730A3;
+  --bg-page: #F8F8F6; --bg-card: #FFFFFF; --bg-hover: #F5F5F3;
+  --text-primary: #1A1A1A; --text-secondary: #6B7280; --text-tertiary: #9CA3AF;
+  --border: #E5E7EB; --border-light: #F3F4F6;
+  --font: -apple-system, BlinkMacSystemFont, "Hiragino Sans", sans-serif;
+}
+body { font-family: var(--font); background: var(--bg-page); padding: 24px; }
+.label { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-tertiary); margin-bottom: 20px; }
+.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; align-items: start; }
+.card { background: var(--bg-card); border: 0.5px solid var(--border); border-radius: 10px; overflow: hidden; }
+.card-label { padding: 10px 14px 8px; border-bottom: 0.5px solid var(--border); font-size: 10px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text-tertiary); }
+.card-body { padding: 12px 14px; }
+.briefing-text { font-size: 12px; line-height: 1.65; color: var(--text-primary); margin-bottom: 10px; }
+.briefing-text:last-child { margin-bottom: 0; }
+.task-list { display: flex; flex-direction: column; gap: 6px; }
+.task-item { display: flex; align-items: flex-start; gap: 7px; font-size: 12px; line-height: 1.5; color: var(--text-primary); }
+.task-item input[type=checkbox] { margin-top: 2px; flex-shrink: 0; accent-color: var(--primary); }
+.task-source { font-size: 10px; color: var(--text-tertiary); margin-left: 19px; margin-top: 1px; }
+.card-body.scrollable { max-height: 340px; overflow-y: auto; }
+.card-body.scrollable::-webkit-scrollbar { width: 3px; }
+.card-body.scrollable::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+.task-section { margin-bottom: 12px; }
+.task-section-label { font-size: 10px; font-weight: 600; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+.task-section:last-child { margin-bottom: 0; }
+/* 説明注釈（Notionメモ用） */
+.note { margin-top: 24px; padding: 12px 16px; background: var(--bg-card); border: 0.5px solid var(--border); border-radius: 8px; font-size: 12px; color: var(--text-secondary); line-height: 1.6; }
+.note strong { color: var(--text-primary); }
+</style>
+</head>
+<body>
+<div class="label">MaiLLY v2 — B: ブリーフィング 3パターン（ワイヤー確定）</div>
+<div class="grid">
+  <!-- Simple -->
+  <div class="card">
+    <div class="card-label">Briefing</div>
+    <div class="card-body">
+      <div class="briefing-text">LinkedInからJob Alertのメールです。UXデザイナーのポジションが新着で3件あります。特にアクションは不要ですが、気になる場合は確認をどうぞ。</div>
+    </div>
+  </div>
+  <!-- Normal -->
+  <div class="card">
+    <div class="card-label">Briefing</div>
+    <div class="card-body">
+      <div class="briefing-text">田中さんが先日の契約書についてあなたに確認しています。契約条件の確認と来週のキックオフミーティングの日程調整をお願いしているようです。</div>
+      <div class="task-list">
+        <div><div class="task-item"><input type="checkbox"/><span>日程を返答する（5/26・27・28から選択）</span></div></div>
+        <div><div class="task-item"><input type="checkbox"/><span>契約期間：2026/05/15〜2027/05/14</span></div><div class="task-source">3ページ目より</div></div>
+        <div><div class="task-item"><input type="checkbox"/><span>支払い条件：月末締め翌月払い</span></div><div class="task-source">3ページ目より</div></div>
+      </div>
+    </div>
+  </div>
+  <!-- Complex -->
+  <div class="card">
+    <div class="card-label">Briefing</div>
+    <div class="card-body scrollable">
+      <div class="briefing-text">法務チームから契約書の最終確認依頼が届いています。複数のPDFが添付されており、各セクションの確認と署名が必要です。期限は今週金曜日です。</div>
+      <div class="task-section">
+        <div class="task-section-label">確認事項</div>
+        <div class="task-list">
+          <div><div class="task-item"><input type="checkbox"/><span>契約期間：2026/06/01〜2027/05/31</span></div><div class="task-source">本契約書 2ページ目</div></div>
+          <div><div class="task-item"><input type="checkbox"/><span>支払い条件：月末締め翌月末払い</span></div><div class="task-source">本契約書 3ページ目</div></div>
+          <div><div class="task-item"><input type="checkbox"/><span>解約条項：6ヶ月前通知必須</span></div><div class="task-source">本契約書 4ページ目</div></div>
+          <div><div class="task-item"><input type="checkbox"/><span>秘密保持条項：3年間有効</span></div><div class="task-source">別紙NDA 1ページ目</div></div>
+        </div>
+      </div>
+      <div class="task-section">
+        <div class="task-section-label">対応事項</div>
+        <div class="task-list">
+          <div><div class="task-item"><input type="checkbox"/><span>法務部への承認返答（期限：5/23金）</span></div></div>
+          <div><div class="task-item"><input type="checkbox"/><span>修正箇所があれば赤字で記入して返送</span></div></div>
+          <div><div class="task-item"><input type="checkbox"/><span>署名ページに押印してPDFで返送</span></div><div class="task-source">別紙 署名欄</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="note">
+  <strong>実装メモ：</strong> Simple / Normal / Complex のラベルはUIには表示しない。AIがメールの複雑さを判定してパターンを自動選択する。タスクのソース表示（「3ページ目より」など）はPDF添付がある場合のみ表示。
+</div>
+</body>
+</html>
