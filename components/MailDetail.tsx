@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useSession, signOut } from "next-auth/react";
 import toast from "react-hot-toast";
 import { ChevronLeftIcon, MailOpenIcon, MailIcon, ArchiveIcon, Trash2Icon } from "lucide-react";
-import { tokens, buttonStyles, keyframes } from "@/lib/tokens";
+import { tokens, semantic, buttonStyles, keyframes } from "@/lib/tokens";
 import AIReplyPanel, { type ReplyPattern } from "./AIReplyPanel";
 import BriefingPanel from "./BriefingPanel";
 import ErrorMessage from "./ErrorMessage";
@@ -70,6 +70,7 @@ export default function MailDetail({ mail, onClose, onAction, onBack }: Props) {
   const [regeneratingIndex, setRegeneratingIndex] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [replyMode, setReplyMode] = useState<"reply" | "replyAll" | "forward">("reply");
+  const [replyType, setReplyType] = useState<"answer" | "pending" | "refer">("answer");
   const [isAiPanelOpen, setIsAiPanelOpen] = useState(false); // モバイル用アコーディオン
   const [isGenerated, setIsGenerated] = useState(false);
   const [bodyViewMode, setBodyViewMode] = useState<"html" | "text">("html");
@@ -84,6 +85,7 @@ export default function MailDetail({ mail, onClose, onAction, onBack }: Props) {
     retryOnEmailBodyRef.current = false; // メール切り替え時はリトライフラグをリセット
     if (!mail) return;
     setReplyMode("reply");
+    setReplyType("answer"); // 新しいメールでは常に Answer から始める
     setIsAiPanelOpen(false);
     setBodyViewMode("html");
     setIsGenerated(false);
@@ -96,9 +98,9 @@ export default function MailDetail({ mail, onClose, onAction, onBack }: Props) {
       return;
     }
 
-    // PC/TB: メール選択と同時に生成開始
+    // PC/TB: メール選択と同時に生成開始（Answer 固定）
     if (typeof window !== "undefined" && window.innerWidth >= 640) {
-      generateReply();
+      generateReply("answer");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mail?.id]);
@@ -114,7 +116,7 @@ export default function MailDetail({ mail, onClose, onAction, onBack }: Props) {
       !replyCache.current[mail.id]
     ) {
       retryOnEmailBodyRef.current = false;
-      generateReply();
+      generateReply(replyType);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [emailBody]);
@@ -123,7 +125,8 @@ export default function MailDetail({ mail, onClose, onAction, onBack }: Props) {
     return null;
   }
 
-  const generateReply = async () => {
+  const generateReply = async (overrideType?: "answer" | "pending" | "refer") => {
+    const effectiveType = overrideType ?? replyType;
     // 最新の mail を ref 経由で参照（stale closure 対策）
     const currentMail = mailRef.current;
     if (!currentMail) return;
@@ -157,6 +160,7 @@ export default function MailDetail({ mail, onClose, onAction, onBack }: Props) {
           attachments: currentMail.attachments ?? [],
           from: currentMail.from,
           to: currentMail.to ?? "",
+          replyType: effectiveType,
         }),
         signal: controller.signal,
       });
@@ -220,6 +224,7 @@ export default function MailDetail({ mail, onClose, onAction, onBack }: Props) {
           regenerateLabel: label,
           from: mail.from,
           to: mail.to ?? "",
+          replyType,
         }),
       });
 
@@ -497,7 +502,7 @@ export default function MailDetail({ mail, onClose, onAction, onBack }: Props) {
                 setIsAiPanelOpen(opening);
                 // SP: パネルを開いたタイミングで生成開始（未生成・未実行・キャッシュなしの場合のみ）
                 if (opening && !isGenerated && !isGenerating && !replyCache.current[mail.id]) {
-                  generateReply();
+                  generateReply(replyType);
                 }
               }}
               aria-expanded={isAiPanelOpen}
@@ -554,8 +559,42 @@ export default function MailDetail({ mail, onClose, onAction, onBack }: Props) {
                 ))}
               </div>
 
+              {/* ── 返信タイプ Pill（Answer / Pending / Refer） ── */}
+              {replyMode !== "forward" && (
+                <div className="flex gap-2 mb-3">
+                  {(["answer", "pending", "refer"] as const).map((type) => {
+                    const isSelected = replyType === type;
+                    const ps = isSelected ? semantic.pill.selected : semantic.pill.unselected;
+                    const label = type === "answer" ? "Answer" : type === "pending" ? "Pending" : "Refer";
+                    return (
+                      <button
+                        key={type}
+                        onClick={() => setReplyType(type)}
+                        disabled={isGenerating}
+                        style={{
+                          background: ps.background,
+                          border: `${ps.borderWidth}px solid ${ps.borderColor}`,
+                          borderRadius: tokens.radius.pill,
+                          color: ps.color,
+                          fontSize: tokens.font.scale.caption.fontSize,
+                          fontWeight: isSelected ? 500 : 400,
+                          fontFamily: tokens.font.sans,
+                          lineHeight: 1.5,
+                          padding: "5px 13px",
+                          cursor: isGenerating ? "default" : "pointer",
+                          opacity: isGenerating ? 0.5 : 1,
+                          transition: `all ${tokens.transition.micro}`,
+                        }}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
               {error ? (
-                <ErrorMessage message={error} onRetry={generateReply} />
+                <ErrorMessage message={error} onRetry={() => generateReply(replyType)} />
               ) : (
                 <AIReplyPanel
                   key={replyMode}

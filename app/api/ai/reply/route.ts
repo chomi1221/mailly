@@ -7,6 +7,23 @@ const MAX_PDF_BYTES = 10 * 1024 * 1024; // 10MB
 
 const client = new Anthropic();
 
+type ReplyType = "answer" | "pending" | "refer";
+
+// 返信タイプに応じたパターン生成指示を返す
+function buildPatternInstruction(regenerateLabel: string | undefined, replyType: ReplyType): string {
+  if (regenerateLabel) {
+    return `Generate exactly one reply pattern. The label must be "${regenerateLabel}".`;
+  }
+  switch (replyType) {
+    case "pending":
+      return `Generate 2 reply patterns. Each must be a brief, professional holding reply — acknowledge receipt and commit to following up without making specific promises. Keep each reply to 2–4 sentences. Vary the patterns by tone or level of formality.`;
+    case "refer":
+      return `Generate 3 reply patterns. Each must be a careful, deliberate reply that addresses the sender's key points systematically, shares a considered perspective, and outlines next steps where relevant. Distinguish each pattern by approach (e.g. direct answer, request for more information, propose next meeting).`;
+    default: // "answer"
+      return `Generate 3 reply patterns. Distinguish each pattern by the direction of the reply.`;
+  }
+}
+
 // ── ヘルパー ──────────────────────────────────────────────────────────────
 
 // "tony.smith@example.com" → "Tony Smith"
@@ -131,7 +148,9 @@ export async function POST(req: NextRequest) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
   }
 
-  const { emailBody, subject, attachments, regenerateLabel, from, to } = await req.json();
+  const { emailBody, subject, attachments, regenerateLabel, from, to, replyType: rawReplyType } = await req.json();
+  const replyType: ReplyType =
+    rawReplyType === "pending" || rawReplyType === "refer" ? rawReplyType : "answer";
 
   if (!emailBody) {
     return new Response(JSON.stringify({ error: "emailBody is required" }), { status: 400 });
@@ -158,9 +177,7 @@ export async function POST(req: NextRequest) {
   }
   const userText = lines.join("\n");
 
-  const patternInstruction = regenerateLabel
-    ? `Generate exactly one reply pattern. The label must be "${regenerateLabel}".`
-    : `Generate 3 reply patterns. Distinguish each pattern by the direction of the reply.`;
+  const patternInstruction = buildPatternInstruction(regenerateLabel, replyType);
 
   const stream = new ReadableStream({
     async start(controller) {
