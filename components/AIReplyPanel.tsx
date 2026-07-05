@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { RefreshCw } from "lucide-react";
-import { tokens, buttonStyles, tabStyles, keyframes, semantic } from "@/lib/tokens";
+import { RefreshCw, Reply, ReplyAll, Forward } from "lucide-react";
+import { tokens, buttonStyles, keyframes, semantic } from "@/lib/tokens";
 import ErrorMessage from "./ErrorMessage";
 
 export type ReplyPattern = {
@@ -19,6 +19,10 @@ type Props = {
   onSend: (body: string, to?: string) => Promise<void>;
   onRegenerate: (index: number, label: string) => void;
   mode?: "reply" | "replyAll" | "forward";
+  onModeChange?: (mode: "reply" | "replyAll" | "forward") => void;
+  replyType?: "answer" | "pending" | "refer";
+  onReplyTypeChange?: (type: "answer" | "pending" | "refer") => void;
+  isGenerating?: boolean;
   initialBody?: string;
   isGenerated: boolean;
 };
@@ -219,13 +223,18 @@ export default function AIReplyPanel({
   onSend,
   onRegenerate,
   mode = "reply",
+  onModeChange,
+  replyType = "answer",
+  onReplyTypeChange,
+  isGenerating = false,
   initialBody,
   isGenerated,
 }: Props) {
   const isForward = mode === "forward";
 
   // ─ Existing state ─
-  const [activeIndex, setActiveIndex] = useState(0);
+  // 返信タイプは上部 Pill で排他選択されるため、パネル内は常に単一パターン（index 0）。
+  const activeIndex = 0;
   const [editedBody, setEditedBody] = useState(initialBody ?? "");
   const [editedTo, setEditedTo] = useState("");
   const [isSending, setIsSending] = useState(false);
@@ -269,12 +278,6 @@ export default function AIReplyPanel({
   }, []);
 
   // ─ Handlers ─
-
-  const handleTabClick = (i: number) => {
-    setActiveIndex(i);
-    setSent(false);
-    setSendError(null);
-  };
 
   const handleSend = async () => {
     if (!editedBody.trim() || isSending) return;
@@ -378,6 +381,48 @@ export default function AIReplyPanel({
             animation: "mailly-fadeInUp 0.2s ease-out",
           }}
         >
+          {/* ── Reply mode row (Reply / Reply All / Forward) ── */}
+          {onModeChange && (
+            <div
+              className="flex items-center gap-1 px-4 py-2"
+              style={{ borderBottom: `1px solid ${tokens.color.borderLight}` }}
+            >
+              {(
+                [
+                  { value: "reply", label: "Reply", Icon: Reply },
+                  { value: "replyAll", label: "Reply All", Icon: ReplyAll },
+                  { value: "forward", label: "Forward", Icon: Forward },
+                ] as const
+              ).map(({ value, label, Icon }) => {
+                const isActive = mode === value;
+                return (
+                  <button
+                    key={value}
+                    onClick={() => onModeChange(value)}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 5,
+                      fontSize: 12,
+                      fontFamily: tokens.font.sans,
+                      fontWeight: isActive ? 500 : 400,
+                      color: isActive ? tokens.color.primary : tokens.color.textSecondary,
+                      background: "transparent",
+                      border: "none",
+                      padding: "4px 8px",
+                      borderRadius: tokens.radius.control,
+                      cursor: "pointer",
+                      transition: `color ${tokens.transition.micro}`,
+                    }}
+                  >
+                    <Icon size={14} />
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
           {/* ── Header ── */}
           {isForward ? (
             <div className="flex items-center gap-2 px-4 py-3" style={innerDivider}>
@@ -392,13 +437,8 @@ export default function AIReplyPanel({
                 className="flex-1"
                 style={{ fontSize: 13, fontWeight: 500, color: tokens.color.textPrimary }}
               >
-                {isLoading ? "Generating reply patterns..." : "Reply patterns generated"}
+                {isLoading ? "Generating reply..." : "Reply generated"}
               </span>
-              {patterns.length > 0 && !isLoading && (
-                <span style={{ fontSize: 12, color: tokens.color.textSecondary }}>
-                  {patterns.length} {patterns.length === 1 ? "pattern" : "patterns"}
-                </span>
-              )}
               {isLoading && (
                 <span
                   className="w-4 h-4 rounded-full border-2 animate-spin"
@@ -410,28 +450,6 @@ export default function AIReplyPanel({
               )}
             </div>
           ) : null}
-
-          {/* ── Pattern tabs ── */}
-          {!isForward && isGenerated && (
-            <div
-              className="px-4 flex flex-wrap gap-2"
-              style={{ paddingTop: 12, paddingBottom: 12, ...innerDivider }}
-            >
-              {patterns.map((p, i) => (
-                <button
-                  key={i}
-                  onClick={() => handleTabClick(i)}
-                  style={{
-                    ...(i === activeIndex ? tabStyles.active : tabStyles.inactive),
-                    opacity: sent ? (i === activeIndex ? 1 : 0.4) : 1,
-                    cursor: sent ? "default" : "pointer",
-                  }}
-                >
-                  {p.label}
-                </button>
-              ))}
-            </div>
-          )}
 
           {/* ── To ── */}
           <div
@@ -483,6 +501,43 @@ export default function AIReplyPanel({
             </div>
           )}
 
+          {/* ── Reply type pills (Answer / Pending / Refer) ── */}
+          {!isForward && onReplyTypeChange && (
+            <div
+              className="px-4 flex gap-2"
+              style={{ paddingTop: 10, paddingBottom: 10, ...innerDivider }}
+            >
+              {(["answer", "pending", "refer"] as const).map((type) => {
+                const isSelected = replyType === type;
+                const ps = isSelected ? semantic.pill.selected : semantic.pill.unselected;
+                const label = type === "answer" ? "Answer" : type === "pending" ? "Pending" : "Refer";
+                return (
+                  <button
+                    key={type}
+                    onClick={() => onReplyTypeChange(type)}
+                    disabled={isGenerating}
+                    style={{
+                      background: ps.background,
+                      border: `${ps.borderWidth}px solid ${ps.borderColor}`,
+                      borderRadius: tokens.radius.pill,
+                      color: ps.color,
+                      fontSize: tokens.font.scale.caption.fontSize,
+                      fontWeight: isSelected ? 500 : 400,
+                      fontFamily: tokens.font.sans,
+                      lineHeight: 1.5,
+                      padding: "5px 13px",
+                      cursor: isGenerating ? "default" : "pointer",
+                      opacity: isGenerating ? 0.5 : 1,
+                      transition: `all ${tokens.transition.micro}`,
+                    }}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
           {/* ── "Edit and send" label + "Edit entire reply" toggle ── */}
           {isGenerated && (
             <div
@@ -515,11 +570,13 @@ export default function AIReplyPanel({
                     fontFamily: tokens.font.sans,
                     background: "transparent",
                     border: "none",
-                    color: wholeEditOpen ? tokens.color.primary : tokens.color.textTertiary,
+                    color: tokens.color.primary,
                     cursor: "pointer",
                     padding: 0,
                     fontWeight: wholeEditOpen ? 500 : 400,
-                    transition: `color ${tokens.transition.micro}`,
+                    textDecoration: "underline",
+                    textUnderlineOffset: 2,
+                    transition: `opacity ${tokens.transition.micro}`,
                   }}
                 >
                   {wholeEditOpen ? "Done" : "Edit entire reply"}

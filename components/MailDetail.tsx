@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useSession, signOut } from "next-auth/react";
 import toast from "react-hot-toast";
 import { ChevronLeftIcon, MailOpenIcon, MailIcon, ArchiveIcon, Trash2Icon } from "lucide-react";
-import { tokens, semantic, buttonStyles, keyframes } from "@/lib/tokens";
+import { tokens, buttonStyles, keyframes } from "@/lib/tokens";
 import AIReplyPanel, { type ReplyPattern } from "./AIReplyPanel";
 import BriefingPanel from "./BriefingPanel";
 import ErrorMessage from "./ErrorMessage";
@@ -544,63 +544,6 @@ export default function MailDetail({ mail, onClose, onAction, onBack }: Props) {
               {/* ── ブリーフィング（右カラム最上部） ── */}
               <BriefingPanel email={mail} />
 
-              {/* ── グループ1：返信モード切替（返信・全員に返信・転送） ── */}
-              <div className="flex flex-wrap gap-2 mb-4">
-                {(["reply", "replyAll", "forward"] as const).map((m) => (
-                  <button
-                    key={m}
-                    onClick={() => setReplyMode(m)}
-                    className="px-3 py-2 min-h-[36px] rounded-lg border transition-colors text-sm"
-                    style={{
-                      background: replyMode === m ? tokens.color.primaryLight : tokens.color.bgCard,
-                      color: replyMode === m ? tokens.color.primaryText : tokens.color.textSecondary,
-                      border: `1px solid ${replyMode === m ? tokens.color.primary : tokens.color.neutralDisabled}`,
-                      borderRadius: tokens.radius.button,
-                      fontSize: 13,
-                      fontWeight: replyMode === m ? 500 : 400,
-                      transition: `background ${tokens.transition.micro}`,
-                      cursor: "pointer",
-                    }}
-                  >
-                    {m === "reply" ? "Reply" : m === "replyAll" ? "Reply All" : "Forward"}
-                  </button>
-                ))}
-              </div>
-
-              {/* ── 返信タイプ Pill（Answer / Pending / Refer） ── */}
-              {replyMode !== "forward" && (
-                <div className="flex gap-2 mb-3">
-                  {(["answer", "pending", "refer"] as const).map((type) => {
-                    const isSelected = replyType === type;
-                    const ps = isSelected ? semantic.pill.selected : semantic.pill.unselected;
-                    const label = type === "answer" ? "Answer" : type === "pending" ? "Pending" : "Refer";
-                    return (
-                      <button
-                        key={type}
-                        onClick={() => handleReplyTypeChange(type)}
-                        disabled={isGenerating}
-                        style={{
-                          background: ps.background,
-                          border: `${ps.borderWidth}px solid ${ps.borderColor}`,
-                          borderRadius: tokens.radius.pill,
-                          color: ps.color,
-                          fontSize: tokens.font.scale.caption.fontSize,
-                          fontWeight: isSelected ? 500 : 400,
-                          fontFamily: tokens.font.sans,
-                          lineHeight: 1.5,
-                          padding: "5px 13px",
-                          cursor: isGenerating ? "default" : "pointer",
-                          opacity: isGenerating ? 0.5 : 1,
-                          transition: `all ${tokens.transition.micro}`,
-                        }}
-                      >
-                        {label}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-
               {error ? (
                 <ErrorMessage message={error} onRetry={() => generateReply(replyType)} />
               ) : (
@@ -614,6 +557,10 @@ export default function MailDetail({ mail, onClose, onAction, onBack }: Props) {
                   onSend={handleSend}
                   onRegenerate={regeneratePattern}
                   mode={replyMode}
+                  onModeChange={setReplyMode}
+                  replyType={replyType}
+                  onReplyTypeChange={handleReplyTypeChange}
+                  isGenerating={isGenerating}
                   initialBody={replyMode === "forward" ? computeForwardBody() : undefined}
                   isGenerated={isGenerated}
                 />
