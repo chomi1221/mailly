@@ -63,13 +63,18 @@ function getBody(mail: Mail): string {
 }
 
 function contextMetaText(ctx: SenderContext): string {
-  if (ctx.totalExchanges === 0) return "初めてのやり取り";
-  const parts = [`これまで${ctx.totalExchanges}回やり取り`];
+  if (ctx.totalExchanges === 0) return "First exchange";
+  const parts = [`${ctx.totalExchanges} exchanges`];
   if (ctx.daysSinceLastExchange != null) {
-    parts.push(ctx.daysSinceLastExchange === 0 ? "前回は今日" : `前回${ctx.daysSinceLastExchange}日前`);
+    parts.push(ctx.daysSinceLastExchange === 0 ? "last contact today" : `last contact ${ctx.daysSinceLastExchange} days ago`);
   }
-  return parts.join("・");
+  return parts.join(" · ");
 }
+
+const SECTION_LABEL: Record<Section, string> = {
+  "確認事項": "To Review",
+  "対応事項": "To Do",
+};
 
 // semantic のスタイルオブジェクトを React の style に流し込む
 const s = (obj: object): CSSProperties => obj as CSSProperties;
@@ -174,7 +179,7 @@ export default function BriefingPanel({ email }: { email: Mail }) {
       <span style={{ display: "flex", flexDirection: "column", gap: 2 }}>
         <span style={s(semantic.briefing.taskItem)}>{task.text}</span>
         {task.type === "extraction" && task.source && (
-          <span style={s(semantic.briefing.taskSource)}>出典: {task.source}</span>
+          <span style={s(semantic.briefing.taskSource)}>Source: {task.source}</span>
         )}
       </span>
     </label>
@@ -185,7 +190,7 @@ export default function BriefingPanel({ email }: { email: Mail }) {
     if (items.length === 0) return null;
     return (
       <div style={{ marginTop: tokens.space[3] }}>
-        <div style={{ ...s(semantic.briefing.sectionLabel), marginBottom: tokens.space[2] }}>{label}</div>
+        <div style={{ ...s(semantic.briefing.sectionLabel), marginBottom: tokens.space[2] }}>{SECTION_LABEL[label]}</div>
         {items.map((t, i) => renderTask(t, i))}
       </div>
     );
@@ -205,7 +210,7 @@ export default function BriefingPanel({ email }: { email: Mail }) {
     >
       <style>{briefingStyles}</style>
 
-      <div style={s(semantic.briefing.label)}>ブリーフィング</div>
+      <div style={s(semantic.briefing.label)}>Briefing</div>
 
       {metaText && (
         <div
@@ -221,7 +226,7 @@ export default function BriefingPanel({ email }: { email: Mail }) {
 
       {/* 本体 */}
       {busy && !briefing ? (
-        <div style={{ marginTop: tokens.space[3] }} aria-label="読み込み中">
+        <div style={{ marginTop: tokens.space[3] }} aria-label="Loading">
           {[0, 1, 2].map((i) => (
             <div
               key={i}
@@ -238,7 +243,7 @@ export default function BriefingPanel({ email }: { email: Mail }) {
         </div>
       ) : error && !briefing ? (
         <div style={{ marginTop: tokens.space[3] }}>
-          <div style={{ ...s(semantic.briefing.text) }}>ブリーフィングを取得できませんでした</div>
+          <div style={{ ...s(semantic.briefing.text) }}>Could not load the briefing</div>
           <button
             onClick={regenerate}
             style={{
@@ -253,7 +258,7 @@ export default function BriefingPanel({ email }: { email: Mail }) {
               fontWeight: 500,
             }}
           >
-            再試行
+            Retry
           </button>
         </div>
       ) : briefing ? (
@@ -275,7 +280,7 @@ export default function BriefingPanel({ email }: { email: Mail }) {
 
           {error && (
             <div style={{ ...s(tokens.font.scale.caption), color: tokens.color.danger, marginTop: tokens.space[2] }}>
-              再取得に失敗しました
+              Regeneration failed
             </div>
           )}
         </div>
@@ -306,7 +311,7 @@ export default function BriefingPanel({ email }: { email: Mail }) {
             }}
           >
             <RefreshCwIcon size={12} />
-            {busy ? "再生成中…" : "再生成"}
+            {busy ? "Regenerating…" : "Regenerate"}
           </button>
         </div>
       )}

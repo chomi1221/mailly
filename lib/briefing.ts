@@ -61,9 +61,11 @@ who wrote it, what it is about, and what is being asked of them — then extract
 
 ## Language (CRITICAL)
 - First detect the language of the [EMAIL BODY] itself (ignore the sender context and these instructions).
-- Write briefingText AND every task's text in THAT SAME language.
-- A Japanese email → write everything in Japanese. An English email → write everything in English.
+- Write briefingText AND every task's "text" field in THAT SAME language.
+- A Japanese email → write briefingText and task text in Japanese. An English email → write them in English.
 - Never switch to Japanese just because these instructions are in English/Japanese.
+- EXCEPTION: the "source" field of every task MUST ALWAYS be written in English, regardless of email language.
+  Examples: "email body", "page 3 of the service agreement", "attached invoice PDF", "contract summary sheet page 1".
 
 ## briefingText
 - 1 to 3 sentences, written as a secretary handing the message off, e.g.
@@ -71,8 +73,8 @@ who wrote it, what it is about, and what is being asked of them — then extract
 
 ## Task type rules
 - If a concrete value can be read directly (date, amount, condition, deadline, number) → type: "extraction".
-  Put the value in "text" and ALWAYS include "source" citing where it came from
-  (e.g. "本契約書 3ページ目", "メール本文", "見積書 PDF").
+  Put the value in "text" and ALWAYS include "source" citing where it came from — in English
+  (e.g. "email body", "page 3 of the contract", "attached invoice PDF").
 - If judgement or interpretation is needed and no concrete value can be read → type: "action".
 - If ambiguous → prefer "action" (avoid accuracy risk).
 - An "extraction" task without a "source" is invalid.
