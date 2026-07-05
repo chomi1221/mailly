@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 import { ChevronLeftIcon, MailOpenIcon, MailIcon, ArchiveIcon, Trash2Icon } from "lucide-react";
 import { tokens, buttonStyles, keyframes } from "@/lib/tokens";
 import AIReplyPanel, { type ReplyPattern } from "./AIReplyPanel";
+import BriefingPanel from "./BriefingPanel";
 import ErrorMessage from "./ErrorMessage";
 
 type MailAction = "markRead" | "markUnread" | "archive" | "trash";
@@ -527,6 +528,9 @@ export default function MailDetail({ mail, onClose, onAction, onBack }: Props) {
               `}
             >
             <div className="flex flex-col items-stretch w-full px-4 pb-6 pt-3">
+              {/* ── ブリーフィング（右カラム最上部） ── */}
+              <BriefingPanel email={mail} />
+
               {/* ── グループ1：返信モード切替（返信・全員に返信・転送） ── */}
               <div className="flex flex-wrap gap-2 mb-4">
                 {(["reply", "replyAll", "forward"] as const).map((m) => (
