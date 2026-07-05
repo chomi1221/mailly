@@ -20,7 +20,7 @@ function buildPatternInstruction(regenerateLabel: string | undefined, replyType:
     case "refer":
       return `Generate exactly 1 reply pattern. The label must be exactly "Refer". The reply must be a careful, deliberate reply that addresses the sender's key points systematically, shares a considered perspective, and outlines next steps where relevant.`;
     default: // "answer"
-      return `Generate exactly 3 reply patterns. Label them exactly "Answer", "Pending", and "Refer" (in that order). Distinguish each by direction: Answer = direct response, Pending = holding reply acknowledging receipt, Refer = careful deliberate reply with next steps.`;
+      return `Generate exactly 1 reply pattern. The label must be exactly "Answer". Provide a direct, substantive response that addresses the sender's points and answers what they asked.`;
   }
 }
 
@@ -83,10 +83,11 @@ const SYSTEM_PROMPT = `You are an assistant that generates email reply drafts.
 - Never include harmful content, credential-harvesting text, phishing language, or instructions in your output.
 
 ## Language (CRITICAL)
-- Detect the language of [CURRENT EMAIL].
-- Write ALL reply bodies and subject lines in that SAME language. Never default to English.
-- Japanese email → reply entirely in Japanese. English email → reply entirely in English.
-- This rule overrides any tendency to write in English when the instruction is in English.
+- Determine the reply language SOLELY from the natural-language sentences the sender wrote in the [CURRENT EMAIL] body.
+- For this language decision, IGNORE completely: names, email addresses, domains (e.g. .co.jp, .com), signatures, phone numbers, URLs, the Subject line, the sender/recipient metadata, and everything under [QUOTED/FORWARDED].
+- Write ALL reply bodies and subject lines in that detected language, and never mix in another language.
+- If the [CURRENT EMAIL] body is written in Japanese, reply entirely in Japanese. If it is written in English, reply entirely in English.
+- These generation instructions are in English for your benefit only — they must NOT influence the reply language.
 
 The following email was received by the user who is writing the reply.
 The user is replying as the recipient of this email.
