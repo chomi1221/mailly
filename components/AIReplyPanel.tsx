@@ -396,7 +396,7 @@ export default function AIReplyPanel({
               </span>
               {patterns.length > 0 && !isLoading && (
                 <span style={{ fontSize: 12, color: tokens.color.textSecondary }}>
-                  {patterns.length} patterns
+                  {patterns.length} {patterns.length === 1 ? "pattern" : "patterns"}
                 </span>
               )}
               {isLoading && (

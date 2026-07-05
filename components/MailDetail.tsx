@@ -259,6 +259,14 @@ export default function MailDetail({ mail, onClose, onAction, onBack }: Props) {
     }
   };
 
+  const handleReplyTypeChange = (newType: "answer" | "pending" | "refer") => {
+    setReplyType(newType);
+    if (isGenerated || isGenerating) {
+      delete replyCache.current[mail.id];
+      generateReply(newType);
+    }
+  };
+
   const parseAddressList = (header: string): string[] =>
     header.split(",").map((s) => s.trim()).filter(Boolean);
 
@@ -569,7 +577,7 @@ export default function MailDetail({ mail, onClose, onAction, onBack }: Props) {
                     return (
                       <button
                         key={type}
-                        onClick={() => setReplyType(type)}
+                        onClick={() => handleReplyTypeChange(type)}
                         disabled={isGenerating}
                         style={{
                           background: ps.background,
