@@ -296,18 +296,30 @@ export default function AIReplyPanel({
     if (editingParaIdx === null || !paraInstruction.trim() || editLoading) return;
     setEditLoading(true);
     setEditError(null);
-    const paras = splitParagraphs(editedBody);
-    const target = paras[editingParaIdx] ?? "";
+
+    // async ギャップを挟むため、Apply 時点の値をスナップショットとして確保する。
+    // 閉包が古くなっていても正しい段落インデックス・送信内容で API を呼べる。
+    const snapIdx = editingParaIdx;
+    const snapBody = editedBody;
+    const snapInstruction = paraInstruction;
+
+    const paras = splitParagraphs(snapBody);
+    const target = paras[snapIdx] ?? "";
     try {
       const res = await fetch("/api/ai/edit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content: target, instruction: paraInstruction, scope: "para" }),
+        body: JSON.stringify({ content: target, instruction: snapInstruction, scope: "para" }),
       });
       if (!res.ok) throw new Error("edit failed");
       const { text } = (await res.json()) as { text: string };
-      paras[editingParaIdx] = text.trim();
-      setEditedBody(paras.join("\n\n"));
+      // 関数型更新で「API 呼び出し完了時点での最新 editedBody」に対してパッチを当てる。
+      // これにより、API 待機中に editedBody が変化していた場合でも正しく反映される。
+      setEditedBody((latest) => {
+        const latestParas = splitParagraphs(latest);
+        latestParas[snapIdx] = text.trim();
+        return latestParas.join("\n\n");
+      });
       setEditingParaIdx(null);
       setParaInstruction("");
     } catch {
