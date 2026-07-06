@@ -734,16 +734,24 @@ export default function AIReplyPanel({
                   disabled={isRegenDisabled}
                   className="mailly-regen-btn"
                   style={{
-                    ...buttonStyles.ghost,
-                    color: semantic.readyAction.default.color,
+                    color: isRegenDisabled
+                      ? tokens.color.textTertiary
+                      : semantic.readyAction.default.color,
                     background: semantic.readyAction.default.background,
                     border: `${tokens.borderWidth.default}px solid transparent`,
-                    fontSize: 13,
-                    opacity: isRegenDisabled ? 0.5 : 1,
+                    borderRadius: tokens.radius.control,
+                    fontSize: tokens.font.scale.caption.fontSize,
+                    fontWeight: 500,
+                    padding: "6px 12px",
                     cursor: isRegenDisabled ? "not-allowed" : "pointer",
+                    fontFamily: tokens.font.sans,
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: tokens.space[1] + 2,
+                    transition: `background ${tokens.transition.micro}, border-color ${tokens.transition.micro}`,
                   }}
                 >
-                  <RefreshCw className="w-4 h-4" />
+                  <RefreshCw size={12} />
                   {regeneratingIndex === activeIndex ? "Regenerating..." : "Regenerate"}
                 </button>
               )}
