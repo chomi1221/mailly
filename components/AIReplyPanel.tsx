@@ -173,7 +173,7 @@ const panelStyles =
   `
   .mailly-ghost-btn:not(.btn-danger):hover:not(:disabled) { background: ${tokens.color.primaryLight} !important; }
   .mailly-send-btn:hover:not(:disabled) { background: ${tokens.color.primaryHover} !important; }
-  .mailly-regen-btn:hover:not(:disabled) { background: ${semantic.readyAction.hover.background} !important; border-color: ${semantic.readyAction.hover.border.color} !important; }
+  .mailly-regen-btn:hover:not(:disabled) { background: ${semantic.readyAction.hover.background} !important; }
   .mailly-outline-btn:hover { background: ${tokens.color.bgHover} !important; }
   .mailly-textarea:focus { border-color: ${tokens.color.primary} !important; outline: none; }
 `;
@@ -363,6 +363,7 @@ export default function AIReplyPanel({
   const isSendDisabled = isSending || sent || !canSend;
   const isRegenDisabled =
     isLoading || isSending || regeneratingIndex === activeIndex || patterns.length === 0;
+  const isRegenerating = regeneratingIndex === activeIndex;
 
   const paras = splitParagraphs(editedBody);
   // Paragraph view is shown when: reply generated, whole-edit not open, not forward mode
@@ -734,11 +735,15 @@ export default function AIReplyPanel({
                   disabled={isRegenDisabled}
                   className="mailly-regen-btn"
                   style={{
-                    color: isRegenDisabled
-                      ? tokens.color.textTertiary
-                      : semantic.readyAction.default.color,
-                    background: semantic.readyAction.default.background,
-                    border: `${tokens.borderWidth.default}px solid transparent`,
+                    color: isRegenerating
+                      ? semantic.readyAction.hover.color
+                      : isRegenDisabled
+                        ? tokens.color.textTertiary
+                        : semantic.readyAction.default.color,
+                    background: isRegenerating
+                      ? semantic.readyAction.hover.background
+                      : semantic.readyAction.default.background,
+                    border: "none",
                     borderRadius: tokens.radius.control,
                     fontSize: tokens.font.scale.caption.fontSize,
                     fontWeight: 500,
@@ -748,11 +753,11 @@ export default function AIReplyPanel({
                     display: "inline-flex",
                     alignItems: "center",
                     gap: tokens.space[1] + 2,
-                    transition: `background ${tokens.transition.micro}, border-color ${tokens.transition.micro}`,
+                    transition: `background ${tokens.transition.micro}`,
                   }}
                 >
                   <RefreshCw size={12} />
-                  {regeneratingIndex === activeIndex ? "Regenerating..." : "Regenerate"}
+                  {isRegenerating ? "Regenerating..." : "Regenerate"}
                 </button>
               )}
               <button

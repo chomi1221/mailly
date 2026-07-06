@@ -149,7 +149,6 @@ export const semantic = {
     hover: {
       color: tokens.color.primary,
       background: tokens.color.primaryLight,
-      border: { color: tokens.color.primary, width: tokens.borderWidth.default },
     },
   },
   reply: {
