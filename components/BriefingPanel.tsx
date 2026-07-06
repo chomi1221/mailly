@@ -196,7 +196,8 @@ export default function BriefingPanel({ email }: { email: Mail }) {
     );
   };
 
-  const genStyle = hover ? semantic.edit.generateReady : semantic.edit.generateIdle;
+  const regenStyle = hover ? semantic.readyAction.hover : semantic.readyAction.default;
+  const regenBorder = "border" in regenStyle ? regenStyle.border : null;
 
   return (
     <section
@@ -286,7 +287,8 @@ export default function BriefingPanel({ email }: { email: Mail }) {
         </div>
       ) : null}
 
-      {/* 再生成ボタン：待機時ニュートラル、ホバーで primary（意図が生まれた時のみ点灯） */}
+      {/* 再生成ボタン：Ready（常時実行可能）。デフォルトから Indigo テキストリンク、
+          ホバーで薄い Indigo 背景+枠線のピル状になる（semantic.readyAction） */}
       {(briefing || (error && !busy)) && (
         <div style={{ marginTop: tokens.space[4], display: "flex", justifyContent: "flex-end" }}>
           <button
@@ -295,9 +297,11 @@ export default function BriefingPanel({ email }: { email: Mail }) {
             onMouseEnter={() => setHover(true)}
             onMouseLeave={() => setHover(false)}
             style={{
-              background: busy ? tokens.color.neutralDisabled : genStyle.background,
-              color: genStyle.color,
-              border: "none",
+              background: busy ? "transparent" : regenStyle.background,
+              color: busy ? tokens.color.textTertiary : regenStyle.color,
+              border: regenBorder
+                ? `${regenBorder.width}px solid ${regenBorder.color}`
+                : `${tokens.borderWidth.default}px solid transparent`,
               borderRadius: tokens.radius.control,
               fontSize: tokens.font.scale.caption.fontSize,
               fontWeight: 500,
@@ -307,7 +311,7 @@ export default function BriefingPanel({ email }: { email: Mail }) {
               display: "inline-flex",
               alignItems: "center",
               gap: tokens.space[1] + 2,
-              transition: `background ${tokens.transition.micro}`,
+              transition: `background ${tokens.transition.micro}, border-color ${tokens.transition.micro}`,
             }}
           >
             <RefreshCwIcon size={12} />

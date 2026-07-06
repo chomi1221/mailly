@@ -5,6 +5,10 @@
 // 設計原則:
 //   1. AIのアフォーダンスはニュートラルが既定値。
 //      ユーザーの意図が生まれた時のみ Indigo が点灯する。
+//      これは「Gated（条件付き）」アクション（例: 段落編集の Generate。
+//      入力待ちで実行不可）にのみ適用される。前提条件のない
+//      「Ready（常時実行可能）」アクション（例: Regenerate）は
+//      デフォルトから Indigo で視認可能にする（semantic.readyAction）。
 //   2. 最小フォントサイズ 12px。
 //   3. 孤立値を持たない。すべての値はこのファイルの定義に寄せる。
 
@@ -133,6 +137,20 @@ export const semantic = {
     aiZoneBg: tokens.color.bgQuiet,
     generateIdle:  { background: tokens.color.neutralDisabled, color: "#FFFFFF" },
     generateReady: { background: tokens.color.primary, color: "#FFFFFF" },
+  },
+  // 常時実行可能なアクション（Regenerate等）向け。
+  // Generateボタン（入力待ちでゲートされる semantic.edit）とは異なり、
+  // 前提条件がないためデフォルトから視認可能にする
+  readyAction: {
+    default: {
+      color: tokens.color.primary,
+      background: "transparent",
+    },
+    hover: {
+      color: tokens.color.primary,
+      background: tokens.color.primaryLight,
+      border: { color: tokens.color.primary, width: tokens.borderWidth.default },
+    },
   },
   reply: {
     topAccent: { color: tokens.color.primary, width: tokens.borderWidth.accent },

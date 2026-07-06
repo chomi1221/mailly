@@ -173,6 +173,7 @@ const panelStyles =
   `
   .mailly-ghost-btn:not(.btn-danger):hover:not(:disabled) { background: ${tokens.color.primaryLight} !important; }
   .mailly-send-btn:hover:not(:disabled) { background: ${tokens.color.primaryHover} !important; }
+  .mailly-regen-btn:hover:not(:disabled) { background: ${semantic.readyAction.hover.background} !important; border-color: ${semantic.readyAction.hover.border.color} !important; }
   .mailly-outline-btn:hover { background: ${tokens.color.bgHover} !important; }
   .mailly-textarea:focus { border-color: ${tokens.color.primary} !important; outline: none; }
 `;
@@ -731,9 +732,12 @@ export default function AIReplyPanel({
                     onRegenerate(activeIndex, patterns[activeIndex]?.label ?? "");
                   }}
                   disabled={isRegenDisabled}
-                  className="mailly-ghost-btn"
+                  className="mailly-regen-btn"
                   style={{
                     ...buttonStyles.ghost,
+                    color: semantic.readyAction.default.color,
+                    background: semantic.readyAction.default.background,
+                    border: `${tokens.borderWidth.default}px solid transparent`,
                     fontSize: 13,
                     opacity: isRegenDisabled ? 0.5 : 1,
                     cursor: isRegenDisabled ? "not-allowed" : "pointer",
